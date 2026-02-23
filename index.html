@@ -188,10 +188,48 @@ function marcar(disc,status){
   abrirTurma();
 }
 
-function baixarImagem(){
-  html2canvas(document.getElementById("painelCard")).then(c=>{
-    const link=document.createElement("a");
-    link.download=`Relatorio_${ano.value}${turma.value}.png`;
+function baixarImagem() {
+  const area = document.getElementById("painel-turma");
+
+  // Clonar o painel para não alterar o original
+  const clone = area.cloneNode(true);
+
+  // Remover TODOS os elementos de ação (botões e barras vermelhas)
+  clone.querySelectorAll("button, .botoes-acao, .acao, .btn, .marcar, .desmarcar").forEach(el => el.remove());
+
+  // Garantir que nada interativo apareça
+  clone.querySelectorAll("[onclick]").forEach(el => el.removeAttribute("onclick"));
+
+  // Posicionar fora da tela para renderização limpa
+  clone.style.position = "fixed";
+  clone.style.left = "-9999px";
+  clone.style.top = "0";
+  document.body.appendChild(clone);
+
+  html2canvas(clone, { backgroundColor: "#ffffff" }).then(canvas => {
+    const data = new Date().toLocaleDateString().replace(/\//g, "-");
+    const link = document.createElement("a");
+    link.download = `acompanhamento_turma_${data}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+
+    document.body.removeChild(clone);
+  });
+}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+
+    // remover clone após exportação
+    document.body.removeChild(clone);
+  });
+}.png`;
+    link.href = canvas.toDataURL();
+    link.click();
+
+    // mostrar botões novamente
+    botoes.forEach(b => b.style.display = "flex");
+  });
+}${turma.value}.png`;
     link.href=c.toDataURL();
     link.click();
   });
