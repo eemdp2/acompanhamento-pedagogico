@@ -1,1 +1,217 @@
-inde
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plataforma de Lançamentos - 6º e 7º anos</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background:#f4f6f8; }
+    h1 { text-align:center; }
+    .card { background:white; padding:20px; border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,0.1); margin-bottom:20px; }
+    label { display:block; margin-top:10px; font-weight:bold; }
+    select, input, textarea, button { width:100%; padding:8px; margin-top:5px; border-radius:6px; border:1px solid #ccc; }
+    button { background:#2563eb; color:white; border:none; cursor:pointer; margin-top:15px; }
+    button:hover { background:#1d4ed8; }
+    table { width:100%; border-collapse: collapse; margin-top:15px; }
+    th, td { border:1px solid #ddd; padding:8px; text-align:center; }
+    th { background:#2563eb; color:white; }
+    .ok { color:green; font-weight:bold; }
+    .pendente { color:red; font-weight:bold; }
+  </style>
+</head>
+<body>
+  <div style="display:flex;align-items:center;gap:15px;justify-content:center;margin-bottom:10px;">
+  <img src="brasao-escola.jpeg" alt="Brasão da Escola" style="height:80px;">
+  <div>
+    <h1 style="margin:0;color:#b91c1c;">Plataforma de Acompanhamento de Lançamentos</h1>
+    <div style="text-align:center;font-weight:bold;color:#166534;">Escola Estadual Militar Dom Pedro II</div>
+  </div>
+</div>
+
+  <!-- CADASTRO PROFESSOR POR TURMA -->
+  <div class="card">
+    <h2>Cadastro de Professores por Turma</h2>
+    <label>Professor</label>
+    <input type="text" id="cadProfessor">
+
+    <label>Disciplina</label>
+    <select id="cadDisciplina">
+      <option>Língua Portuguesa</option>
+      <option>Arte</option>
+      <option>Educação Física</option>
+      <option>Inglês</option>
+      <option>Matemática</option>
+      <option>Ciências</option>
+      <option>História</option>
+      <option>Geografia</option>
+    </select>
+
+    <label>Ano</label>
+    <select id="cadAno">
+      <option>6º</option>
+      <option>7º</option>
+    </select>
+
+    <label>Turma</label>
+    <select id="cadTurma"></select>
+
+    <button onclick="salvarProfessorTurma()">Cadastrar Professor na Turma</button>
+  </div>
+
+  <!-- LANÇAMENTO -->
+  <div class="card">
+    <h2>Novo Lançamento</h2>
+    <label>Professor</label>
+    <input type="text" id="professor">
+
+    <label>Disciplina</label>
+    <select id="disciplina">
+      <option>Língua Portuguesa</option>
+      <option>Arte</option>
+      <option>Educação Física</option>
+      <option>Inglês</option>
+      <option>Matemática</option>
+      <option>Ciências</option>
+      <option>História</option>
+      <option>Geografia</option>
+    </select>
+
+    <label>Ano</label>
+    <select id="ano">
+      <option>6º</option>
+      <option>7º</option>
+    </select>
+
+    <label>Turma</label>
+    <select id="turma"></select>
+
+    <label>Semana</label>
+    <input type="week" id="semana">
+
+    <label>Status</label>
+    <select id="status">
+      <option value="Realizado">✔ Realizado</option>
+      <option value="Pendente">❌ Pendente</option>
+      <option value="Corrigir">⚠ Corrigir</option>
+      <option value="Validado">✅ Validado</option>
+    </select>
+
+    <label>Observação</label>
+    <textarea id="obs"></textarea>
+
+    <button onclick="salvarLancamento()">Salvar Lançamento</button>
+  </div>
+
+  <!-- PAINEL DA TURMA -->
+  <div class="card">
+    <h2>Painel da Turma</h2>
+    <label>Ano</label>
+    <select id="painelAno"></select>
+
+    <label>Turma</label>
+    <select id="painelTurma"></select>
+
+    <label>Semana</label>
+    <input type="week" id="painelSemana">
+
+    <button onclick="gerarPainel()">Abrir Turma</button>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Disciplina</th>
+          <th>Professor</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="painelTabela"></tbody>
+    </table>
+  </div>
+
+<script>
+const turmas6 = ["A","B","C","D","E"];
+const turmas7 = ["A","B","C","D","E","F"];
+
+function preencherTurmas(selectAno, selectTurma) {
+  const ano = selectAno.value;
+  selectTurma.innerHTML = "";
+  const lista = ano === "6º" ? turmas6 : turmas7;
+  lista.forEach(t => {
+    const opt = document.createElement("option");
+    opt.text = t;
+    selectTurma.add(opt);
+  });
+}
+
+// inicializar selects
+preencherTurmas(document.getElementById("cadAno"), document.getElementById("cadTurma"));
+preencherTurmas(document.getElementById("ano"), document.getElementById("turma"));
+preencherTurmas(document.getElementById("painelAno"), document.getElementById("painelTurma"));
+
+document.getElementById("cadAno").addEventListener("change", ()=>preencherTurmas(cadAno,cadTurma));
+document.getElementById("ano").addEventListener("change", ()=>preencherTurmas(ano,turma));
+document.getElementById("painelAno").addEventListener("change", ()=>preencherTurmas(painelAno,painelTurma));
+
+function salvarProfessorTurma() {
+  const lista = JSON.parse(localStorage.getItem("profTurma") || "[]");
+  lista.push({
+    professor: cadProfessor.value,
+    disciplina: cadDisciplina.value,
+    ano: cadAno.value,
+    turma: cadTurma.value
+  });
+  localStorage.setItem("profTurma", JSON.stringify(lista));
+  alert("Professor cadastrado na turma!");
+}
+
+function salvarLancamento() {
+  const dados = JSON.parse(localStorage.getItem("lancamentos") || "[]");
+  dados.push({
+    professor: professor.value,
+    disciplina: disciplina.value,
+    ano: ano.value,
+    turma: turma.value,
+    semana: semana.value,
+    status: status.value
+  });
+  localStorage.setItem("lancamentos", JSON.stringify(dados));
+  alert("Lançamento salvo!");
+}
+
+function gerarPainel() {
+  const anoSel = painelAno.value;
+  const turmaSel = painelTurma.value;
+  const semanaSel = painelSemana.value;
+
+  const profs = JSON.parse(localStorage.getItem("profTurma") || "[]")
+    .filter(p => p.ano === anoSel && p.turma === turmaSel);
+
+  const lanc = JSON.parse(localStorage.getItem("lancamentos") || "[]");
+
+  const tbody = document.getElementById("painelTabela");
+  tbody.innerHTML = "";
+
+  profs.forEach(p => {
+    const registro = lanc.find(l =>
+      l.professor === p.professor &&
+      l.disciplina === p.disciplina &&
+      l.ano === anoSel &&
+      l.turma === turmaSel &&
+      l.semana === semanaSel
+    );
+
+    const status = registro ? registro.status : "Não lançou";
+    const classe = registro ? "ok" : "pendente";
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${p.disciplina}</td>
+      <td>${p.professor}</td>
+      <td class="${classe}">${status}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+</script>
+</body>
+</html>
