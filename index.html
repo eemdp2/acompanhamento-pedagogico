@@ -3,215 +3,226 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plataforma de Lançamentos - 6º e 7º anos</title>
+  <title>Painel de Lançamentos</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background:#f4f6f8; }
-    h1 { text-align:center; }
-    .card { background:white; padding:20px; border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,0.1); margin-bottom:20px; }
-    label { display:block; margin-top:10px; font-weight:bold; }
-    select, input, textarea, button { width:100%; padding:8px; margin-top:5px; border-radius:6px; border:1px solid #ccc; }
-    button { background:#2563eb; color:white; border:none; cursor:pointer; margin-top:15px; }
-    button:hover { background:#1d4ed8; }
-    table { width:100%; border-collapse: collapse; margin-top:15px; }
-    th, td { border:1px solid #ddd; padding:8px; text-align:center; }
-    th { background:#2563eb; color:white; }
-    .ok { color:green; font-weight:bold; }
-    .pendente { color:red; font-weight:bold; }
+    body { font-family: Arial; margin:20px; background:#f4f6f8 }
+    h1 { text-align:center }
+    .topo { display:flex;align-items:center;justify-content:center;gap:15px;margin-bottom:20px }
+    .card { background:#fff;padding:20px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.1);margin-bottom:20px }
+    label { font-weight:bold;display:block;margin-top:10px }
+    select,input,button { width:100%;padding:8px;margin-top:5px;border-radius:6px;border:1px solid #ccc }
+    button { background:#b91c1c;color:#fff;border:none;cursor:pointer;margin-top:10px }
+    .listas { display:flex;gap:20px;margin-top:15px }
+    .col { flex:1;padding:10px;border-radius:8px }
+    .col.lancaram { background:#ecfdf5;border:1px solid #22c55e }
+    .col.nao { background:#fef2f2;border:1px solid #ef4444 }
+    .badge { font-size:12px;padding:2px 6px;border-radius:6px;margin-left:6px }
+    .b-ok { background:#22c55e;color:#fff }
+    .b-pend { background:#ef4444;color:#fff }
+    .hidden { display:none }
   </style>
 </head>
 <body>
-  <div style="display:flex;align-items:center;gap:15px;justify-content:center;margin-bottom:10px;">
-  <img src="brasao-escola.jpeg" alt="Brasão da Escola" style="height:80px;">
+
+<div class="topo">
+  <img src="brasao-escola.jpeg" height="70">
   <div>
-    <h1 style="margin:0;color:#b91c1c;">Plataforma de Acompanhamento de Lançamentos</h1>
-    <div style="text-align:center;font-weight:bold;color:#166534;">Escola Estadual Militar Dom Pedro II</div>
+    <h1>Painel de Lançamentos</h1>
+    <div><b>Escola Estadual Militar Dom Pedro II</b></div>
   </div>
 </div>
 
-  <!-- CADASTRO PROFESSOR POR TURMA -->
-  <div class="card">
-    <h2>Cadastro de Professores por Turma</h2>
-    <label>Professor</label>
-    <input type="text" id="cadProfessor">
+<!-- LOGIN -->
+<div class="card" id="loginCard">
+  <h2>Login</h2>
+  <label>Usuário</label>
+  <input id="user">
+  <label>Perfil</label>
+  <select id="perfil">
+    <option value="coord">Coordenador</option>
+    <option value="prof">Professor</option>
+  </select>
+  <button onclick="login()">Entrar</button>
+</div>
 
-    <label>Disciplina</label>
-    <select id="cadDisciplina">
-      <option>Língua Portuguesa</option>
-      <option>Arte</option>
-      <option>Educação Física</option>
-      <option>Inglês</option>
-      <option>Matemática</option>
-      <option>Ciências</option>
-      <option>História</option>
-      <option>Geografia</option>
-    </select>
+<!-- CADASTRO FIXO -->
+<div class="card hidden" id="cadastroCard">
+  <h2>Cadastro fixo da turma</h2>
+  <label>Ano</label>
+  <select id="cadAno"><option>6º</option><option>7º</option></select>
+  <label>Turma</label>
+  <select id="cadTurma"></select>
+  <label>Disciplina</label>
+  <select id="cadDisc">
+    <option>Língua Portuguesa</option><option>Arte</option><option>Educação Física</option>
+    <option>Inglês</option><option>Matemática</option><option>Ciências</option>
+    <option>História</option><option>Geografia</option>
+  </select>
+  <label>Professor</label>
+  <input id="cadProf">
+  <button onclick="salvarCadastro()">Salvar</button>
+</div>
 
-    <label>Ano</label>
-    <select id="cadAno">
-      <option>6º</option>
-      <option>7º</option>
-    </select>
+<!-- PAINEL TURMA -->
+<div class="card hidden" id="painelCard">
+  <h2>Abrir turma</h2>
+  <label>Ano</label>
+  <select id="ano"><option>6º</option><option>7º</option></select>
+  <label>Turma</label>
+  <select id="turma"></select>
+  <label>Semana</label>
+  <input type="week" id="semana">
+  <label>Filtrar disciplina</label>
+  <select id="filtroDisc" onchange="abrirTurma()">
+    <option value="">Todas</option>
+    <option>Língua Portuguesa</option><option>Arte</option><option>Educação Física</option>
+    <option>Inglês</option><option>Matemática</option><option>Ciências</option>
+    <option>História</option><option>Geografia</option>
+  </select>
+  <button onclick="abrirTurma()">Abrir</button>
+  <button onclick="baixarImagem()">Baixar imagens</button>
+  <button onclick="exportarPDF()">Exportar PDF</button>
 
-    <label>Turma</label>
-    <select id="cadTurma"></select>
-
-    <button onclick="salvarProfessorTurma()">Cadastrar Professor na Turma</button>
+  <div style="margin-top:10px">
+    <div style="font-size:12px">Progresso</div>
+    <div style="background:#e5e7eb;border-radius:6px;height:14px">
+      <div id="barraProg" style="height:100%;width:0%;background:#22c55e"></div>
+    </div>
   </div>
 
-  <!-- LANÇAMENTO -->
-  <div class="card">
-    <h2>Novo Lançamento</h2>
-    <label>Professor</label>
-    <input type="text" id="professor">
-
-    <label>Disciplina</label>
-    <select id="disciplina">
-      <option>Língua Portuguesa</option>
-      <option>Arte</option>
-      <option>Educação Física</option>
-      <option>Inglês</option>
-      <option>Matemática</option>
-      <option>Ciências</option>
-      <option>História</option>
-      <option>Geografia</option>
-    </select>
-
-    <label>Ano</label>
-    <select id="ano">
-      <option>6º</option>
-      <option>7º</option>
-    </select>
-
-    <label>Turma</label>
-    <select id="turma"></select>
-
-    <label>Semana</label>
-    <input type="week" id="semana">
-
-    <label>Status</label>
-    <select id="status">
-      <option value="Realizado">✔ Realizado</option>
-      <option value="Pendente">❌ Pendente</option>
-      <option value="Corrigir">⚠ Corrigir</option>
-      <option value="Validado">✅ Validado</option>
-    </select>
-
-    <label>Observação</label>
-    <textarea id="obs"></textarea>
-
-    <button onclick="salvarLancamento()">Salvar Lançamento</button>
+  <div class="listas">
+    <div class="col lancaram">
+      <h3>Quem lançou <span id="contLanc" class="badge b-ok"></span></h3>
+      <div id="listaLancaram"></div>
+    </div>
+    <div class="col nao">
+      <h3>Quem não lançou <span id="contNao" class="badge b-pend"></span></h3>
+      <div id="listaNaoLancaram"></div>
+    </div>
   </div>
+</div>
 
-  <!-- PAINEL DA TURMA -->
-  <div class="card">
-    <h2>Painel da Turma</h2>
-    <label>Ano</label>
-    <select id="painelAno"></select>
-
-    <label>Turma</label>
-    <select id="painelTurma"></select>
-
-    <label>Semana</label>
-    <input type="week" id="painelSemana">
-
-    <button onclick="gerarPainel()">Abrir Turma</button>
-
-    <table>
-      <thead>
-        <tr>
-          <th>Disciplina</th>
-          <th>Professor</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="painelTabela"></tbody>
-    </table>
-  </div>
+<!-- DASHBOARD GERAL -->
+<div class="card hidden" id="geralCard">
+  <h2>Painel geral da escola</h2>
+  <button onclick="gerarResumo()">Atualizar</button>
+  <div id="resumo"></div>
+</div>
 
 <script>
-const turmas6 = ["A","B","C","D","E"];
-const turmas7 = ["A","B","C","D","E","F"];
+const turmas6=["A","B","C","D","E"];
+const turmas7=["A","B","C","D","E","F"];
 
-function preencherTurmas(selectAno, selectTurma) {
-  const ano = selectAno.value;
-  selectTurma.innerHTML = "";
-  const lista = ano === "6º" ? turmas6 : turmas7;
-  lista.forEach(t => {
-    const opt = document.createElement("option");
-    opt.text = t;
-    selectTurma.add(opt);
+const cadAno=document.getElementById("cadAno");
+const cadTurma=document.getElementById("cadTurma");
+const ano=document.getElementById("ano");
+const turma=document.getElementById("turma");
+const semana=document.getElementById("semana");
+const cadDisc=document.getElementById("cadDisc");
+const cadProf=document.getElementById("cadProf");
+
+function preencher(selectAno,selectTurma){
+  const lista = selectAno.value==="6º"?turmas6:turmas7;
+  selectTurma.innerHTML="";
+  lista.forEach(t=>{
+    const o=document.createElement("option");
+    o.value=t; o.textContent=t;
+    selectTurma.appendChild(o);
+  });
+}
+preencher(cadAno,cadTurma);
+preencher(ano,turma);
+cadAno.onchange=()=>preencher(cadAno,cadTurma);
+ano.onchange=()=>preencher(ano,turma);
+
+function login(){
+  const perfil=document.getElementById("perfil").value;
+  document.getElementById("loginCard").classList.add("hidden");
+  document.getElementById("painelCard").classList.remove("hidden");
+  document.getElementById("geralCard").classList.remove("hidden");
+  if(perfil==="coord") document.getElementById("cadastroCard").classList.remove("hidden");
+}
+
+function salvarCadastro(){
+  const base=JSON.parse(localStorage.getItem("baseTurma")||"[]");
+  base.push({ano:cadAno.value,turma:cadTurma.value,disc:cadDisc.value,prof:cadProf.value});
+  localStorage.setItem("baseTurma",JSON.stringify(base));
+  alert("Salvo");
+}
+
+function abrirTurma(){
+  const base=JSON.parse(localStorage.getItem("baseTurma")||"[]")
+    .filter(b=>b.ano===ano.value && b.turma===turma.value);
+  const lanc=JSON.parse(localStorage.getItem("lanc")||"[]");
+  const filtro=document.getElementById("filtroDisc").value;
+
+  let cL=0,cN=0,htmlL="",htmlN="";
+
+  base.forEach(b=>{
+    if(filtro && b.disc!==filtro) return;
+    const reg=lanc.find(l=>l.ano===ano.value && l.turma===turma.value && l.disc===b.disc && l.sem===semana.value);
+    if(reg && reg.status==="Realizado"){
+      cL++;
+      htmlL+=`<div>✔ ${b.disc} — ${b.prof} <button onclick="marcar('${b.disc}','Pendente')">Desmarcar</button></div>`;
+    }else{
+      cN++;
+      htmlN+=`<div>❌ ${b.disc} — ${b.prof} <button onclick="marcar('${b.disc}','Realizado')">Marcar</button></div>`;
+    }
+  });
+
+  const total=(cL+cN)||1;
+  const perc=Math.round(cL*100/total);
+  document.getElementById("barraProg").style.width=perc+"%";
+  document.getElementById("contLanc").textContent=`${cL}/${total} (${perc}%)`;
+  document.getElementById("contNao").textContent=`${cN}`;
+  document.getElementById("listaLancaram").innerHTML=htmlL||"<em>Ninguém</em>";
+  document.getElementById("listaNaoLancaram").innerHTML=htmlN||"<em>Todos</em>";
+}
+
+function marcar(disc,status){
+  const arr=JSON.parse(localStorage.getItem("lanc")||"[]");
+  const i=arr.findIndex(l=>l.ano===ano.value && l.turma===turma.value && l.disc===disc && l.sem===semana.value);
+  if(i===-1) arr.push({ano:ano.value,turma:turma.value,disc,sem:semana.value,status});
+  else arr[i].status=status;
+  localStorage.setItem("lanc",JSON.stringify(arr));
+  abrirTurma();
+}
+
+function baixarImagem(){
+  html2canvas(document.getElementById("painelCard")).then(c=>{
+    const link=document.createElement("a");
+    link.download=`Relatorio_${ano.value}${turma.value}.png`;
+    link.href=c.toDataURL();
+    link.click();
   });
 }
 
-// inicializar selects
-preencherTurmas(document.getElementById("cadAno"), document.getElementById("cadTurma"));
-preencherTurmas(document.getElementById("ano"), document.getElementById("turma"));
-preencherTurmas(document.getElementById("painelAno"), document.getElementById("painelTurma"));
-
-document.getElementById("cadAno").addEventListener("change", ()=>preencherTurmas(cadAno,cadTurma));
-document.getElementById("ano").addEventListener("change", ()=>preencherTurmas(ano,turma));
-document.getElementById("painelAno").addEventListener("change", ()=>preencherTurmas(painelAno,painelTurma));
-
-function salvarProfessorTurma() {
-  const lista = JSON.parse(localStorage.getItem("profTurma") || "[]");
-  lista.push({
-    professor: cadProfessor.value,
-    disciplina: cadDisciplina.value,
-    ano: cadAno.value,
-    turma: cadTurma.value
+function exportarPDF(){
+  html2canvas(document.getElementById("painelCard")).then(c=>{
+    const link=document.createElement("a");
+    link.download=`Relatorio_${ano.value}${turma.value}.pdf`;
+    link.href=c.toDataURL();
+    link.click();
   });
-  localStorage.setItem("profTurma", JSON.stringify(lista));
-  alert("Professor cadastrado na turma!");
 }
 
-function salvarLancamento() {
-  const dados = JSON.parse(localStorage.getItem("lancamentos") || "[]");
-  dados.push({
-    professor: professor.value,
-    disciplina: disciplina.value,
-    ano: ano.value,
-    turma: turma.value,
-    semana: semana.value,
-    status: status.value
+function gerarResumo(){
+  const base=JSON.parse(localStorage.getItem("baseTurma")||"[]");
+  const lanc=JSON.parse(localStorage.getItem("lanc")||"[]");
+  const div=document.getElementById("resumo");
+  let html="";
+
+  [...new Set(base.map(b=>b.ano+b.turma))].forEach(t=>{
+    const turmaBase=base.filter(b=>b.ano+b.turma===t);
+    const total=turmaBase.length;
+    const feitos=lanc.filter(l=>l.ano+l.turma===t && l.status==="Realizado").length;
+    const perc=Math.round((feitos/(total||1))*100);
+    html+=`<div><b>Turma ${t}</b> — ${perc}% lançamentos</div>`;
   });
-  localStorage.setItem("lancamentos", JSON.stringify(dados));
-  alert("Lançamento salvo!");
-}
 
-function gerarPainel() {
-  const anoSel = painelAno.value;
-  const turmaSel = painelTurma.value;
-  const semanaSel = painelSemana.value;
-
-  const profs = JSON.parse(localStorage.getItem("profTurma") || "[]")
-    .filter(p => p.ano === anoSel && p.turma === turmaSel);
-
-  const lanc = JSON.parse(localStorage.getItem("lancamentos") || "[]");
-
-  const tbody = document.getElementById("painelTabela");
-  tbody.innerHTML = "";
-
-  profs.forEach(p => {
-    const registro = lanc.find(l =>
-      l.professor === p.professor &&
-      l.disciplina === p.disciplina &&
-      l.ano === anoSel &&
-      l.turma === turmaSel &&
-      l.semana === semanaSel
-    );
-
-    const status = registro ? registro.status : "Não lançou";
-    const classe = registro ? "ok" : "pendente";
-
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${p.disciplina}</td>
-      <td>${p.professor}</td>
-      <td class="${classe}">${status}</td>
-    `;
-    tbody.appendChild(tr);
-  });
+  div.innerHTML=html;
 }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </body>
 </html>
