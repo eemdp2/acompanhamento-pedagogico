@@ -1,142 +1,81 @@
-// 1. CONFIGURAÇÃO DO FIREBASE (Suas chaves do projeto acompanhamento-pedagogico2026)
-const firebaseConfig = {
-  apiKey: "AIzaSyDliIAcOCvgChv68cog27jenACkpF8MCyg",
-  authDomain: "acompanhamento-pedagogico2026.firebaseapp.com",
-  projectId: "acompanhamento-pedagogico2026",
-  storageBucket: "acompanhamento-pedagogico2026.firebasestorage.app",
-  messagingSenderId: "358848317719",
-  appId: "1:358848317719:web:42feccdc979a1776cc8f52",
-  measurementId: "G-N0Z5CZHEXK",
-  // ESSA LINHA É A CHAVE PARA FUNCIONAR:
-  databaseURL: "https://acompanhamento-pedagogico2026-default-rtdb.firebaseio.com"
-};
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Lançamentos 2026 - EEM Dom Pedro II</title>
+    
+    <link rel="stylesheet" href="style.css">
 
-// Inicializa o Firebase
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+</head>
+<body>
 
-// 2. MONITOR DE CONEXÃO EM TEMPO REAL
-const ponto = document.getElementById('pontoStatus');
-const texto = document.getElementById('textoStatus');
+    <div class="topo">
+        <img src="brasao-escola.jpeg" height="80" alt="Brasão da Escola">
+        <div>
+            <h1>PAINEL DE LANÇAMENTOS 2026</h1>
+            <div class="subtitulo">Escola Estadual Militar Dom Pedro II</div>
+        </div>
+    </div>
 
-// Verifica se o navegador conseguiu "falar" com o Google
-db.ref(".info/connected").on("value", (snap) => {
-    if (snap.val() === true) {
-        ponto.style.backgroundColor = "#16a34a"; // Verde (Sincronizado)
-        texto.innerText = "Sincronizado com Firebase Cloud";
-        texto.style.color = "#16a34a";
-    } else {
-        ponto.style.backgroundColor = "#b91c1c"; // Vermelho (Offline)
-        texto.innerText = "Offline - Tentando reconectar...";
-        texto.style.color = "#b91c1c";
-    }
-});
+    <div id="statusConexao" style="text-align: center; margin-bottom: 20px;">
+        <span id="pontoStatus" style="height: 12px; width: 12px; background-color: #bbb; border-radius: 50%; display: inline-block; margin-right: 8px;"></span>
+        <small id="textoStatus" style="color: #666; font-weight: bold; font-family: sans-serif;">
+            Verificando conexão com a nuvem...
+        </small>
+    </div>
 
-// 3. ESTRUTURA PEDAGÓGICA (6º ao 9º ano)
-const turmasBase = {
-    "6º": ["A","B","C","D","E"],
-    "7º": ["A","B","C","D","E","F"],
-    "8º": ["A","B","C"],
-    "9º": ["A","B"]
-};
+    <div class="card">
+        <h2>Busca por Professor (Todas as Turmas)</h2>
+        <div style="display: flex; gap: 10px;">
+            <input id="profPendencias" style="flex: 2;" placeholder="Digite o nome completo do professor">
+            <button class="sec" style="flex: 1;" onclick="copiarPendenciasProfessor()">📋 GERAR RELATÓRIO WHATSAPP</button>
+        </div>
+    </div>
 
-const disciplinasBase = [
-    "Língua Portuguesa", "Arte", "Educação Física", "Inglês", 
-    "Matemática", "Ciências", "História", "Geografia"
-];
+    <div class="card" id="areaTurma">
+        <h2>Acompanhamento por Turma</h2>
+        
+        <div class="seletores" style="display: flex; gap: 15px; margin-bottom: 15px;">
+            <div style="flex: 1;">
+                <label>Ano / Série</label>
+                <select id="ano" onchange="carregarTurmas()"></select>
+            </div>
+            <div style="flex: 1;">
+                <label>Turma</label>
+                <select id="turma"></select>
+            </div>
+        </div>
 
-// 4. INICIALIZAÇÃO DA INTERFACE
-window.onload = () => {
-    const anoSel = document.getElementById("ano");
-    if(anoSel) {
-        Object.keys(turmasBase).forEach(a => {
-            const op = document.createElement("option");
-            op.textContent = a;
-            anoSel.appendChild(op);
-        });
-        carregarTurmas();
-    }
-};
+        <div class="btn-group" style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <button style="flex: 1;" onclick="abrirTurma()">🔍 VISUALIZAR TURMA</button>
+            <button class="ok" style="flex: 1;" onclick="copiarResumoTurma()">📝 COPIAR RESUMO</button>
+            <button class="warn" style="flex: 1;" onclick="baixarImagem()">🖼️ BAIXAR FOTO DO PAINEL</button>
+        </div>
 
-function carregarTurmas() {
-    const ano = document.getElementById("ano").value;
-    const turmaSel = document.getElementById("turma");
-    if(!turmaSel) return;
-    turmaSel.innerHTML = "";
-    turmasBase[ano].forEach(t => {
-        const op = document.createElement("option");
-        op.textContent = t;
-        turmaSel.appendChild(op);
-    });
-}
+        <table id="tabelaDados" style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background-color: #1e3a8a; color: white;">
+                    <th style="padding: 12px;">DISCIPLINA</th>
+                    <th>PROFESSOR</th>
+                    <th>PLANEJAMENTO</th>
+                    <th>LANÇAMENTO PEI</th>
+                    <th>AÇÕES</th>
+                </tr>
+            </thead>
+            <tbody id="tabelaBody">
+                </tbody>
+        </table>
+    </div>
 
-// 5. FUNÇÕES DE BANCO DE DADOS (FIREBASE)
-function abrirTurma() {
-    const ano = document.getElementById("ano").value;
-    const turma = document.getElementById("turma").value;
-    const chave = `${ano}${turma}`;
+    <div style="text-align: center; margin-top: 30px; color: #94a3b8; font-size: 0.8rem;">
+        SISTEMA DE GESTÃO PEDAGÓGICA - 2026
+    </div>
 
-    db.ref('pedagogico/' + chave).on('value', (snapshot) => {
-        let dados = snapshot.val();
-        if (!dados) {
-            dados = disciplinasBase.map(d => ({
-                disciplina: d, professor: "", planejamento: false, pei: false, obs: ""
-            }));
-            db.ref('pedagogico/' + chave).set(dados);
-        }
-        renderTabela(dados, chave);
-    });
-}
+    <script src="script.js"></script>
 
-function renderTabela(dados, chave) {
-    const tb = document.getElementById("tabelaBody");
-    if(!tb) return;
-    tb.innerHTML = "";
-
-    dados.forEach((d, i) => {
-        const tr = document.createElement("tr");
-        if(d.planejamento && d.pei) tr.style.background = "#f0fdf4";
-
-        tr.innerHTML = `
-            <td><b>${d.disciplina}</b>${d.obs ? `<br><small>📝 ${d.obs}</small>` : ''}</td>
-            <td>${d.professor || "—"}</td>
-            <td><button class="badge ${d.planejamento ? 'ok' : 'pend'}" onclick="toggleStatus('${chave}',${i},'planejamento')">${d.planejamento ? 'OK' : 'PEND'}</button></td>
-            <td><button class="badge ${d.pei ? 'ok' : 'pend'}" onclick="toggleStatus('${chave}',${i},'pei')">${d.pei ? 'OK' : 'PEND'}</button></td>
-            <td><button class="editBtn" onclick="editarLinha('${chave}',${i})">✏️</button></td>
-        `;
-        tb.appendChild(tr);
-    });
-}
-
-function toggleStatus(chave, i, campo) {
-    const ref = db.ref(`pedagogico/${chave}/${i}`);
-    ref.once('value', (snap) => {
-        const val = snap.val()[campo];
-        ref.update({ [campo]: !val });
-    });
-}
-
-function editarLinha(chave, i) {
-    const ref = db.ref(`pedagogico/${chave}/${i}`);
-    ref.once('value', (snap) => {
-        const d = snap.val();
-        const prof = prompt("Nome do Professor:", d.professor);
-        const observacao = prompt("Observações (Ex: Faltam 2 PEIs):", d.obs);
-        if (prof !== null) {
-            ref.update({
-                professor: prof.trim(),
-                obs: observacao ? observacao.trim() : ""
-            });
-        }
-    });
-}
-
-// 6. UTILITÁRIOS
-function baixarImagem() {
-    html2canvas(document.getElementById("areaTurma")).then(canvas => {
-        const link = document.createElement("a");
-        link.download = `relatorio_pedagogico.png`;
-        link.href = canvas.toDataURL();
-        link.click();
-    });
-}
+</body>
+</html>
