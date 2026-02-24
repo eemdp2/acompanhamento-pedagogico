@@ -19,8 +19,8 @@ const db = firebase.database();
 const turmasBase = {
     "6º": ["A","B","C","D","E"],
     "7º": ["A","B","C","D","E","F"],
-    "8º": ["A","B","C"],
-    "9º": ["A","B"]
+    "8º": ["A","B","C","D","E"],
+    "9º": ["A","B","C","D","E"]
 };
 
 const disciplinasBase = [
