@@ -183,39 +183,60 @@ function baixarImagem(){
   });
 }
 function varreduraGeral() {
-    db.ref("turmas").once("value").then(snap => {
-        const todasTurmas = snap.val() || {};
-        if (Object.keys(todasTurmas).length === 0) {
-            alert("Nenhum dado encontrado no banco de dados.");
-            return;
-        }
+  // Acessa a pasta principal onde todas as turmas estão guardadas
+  db.ref("turmas").once("value").then(snap => {
+    const todasTurmas = snap.val();
+    
+    if (!todasTurmas) {
+      alert("Nenhum dado encontrado no Firebase. Abra as turmas primeiro.");
+      return;
+    }
 
-        let relatorio = "📊 *QUADRO GERAL DE PROFESSORES 2026*\n";
-        relatorio += "*Escola Estadual Militar Dom Pedro II*\n\n";
+    let relatorio = "📊 *QUADRO GERAL DE PROFESSORES 2026*\n";
+    relatorio += "*Escola Estadual Militar Dom Pedro II*\n\n";
 
-        // Ordenar as turmas para o relatório ficar bonito
-        const chavesOrdenadas = Object.keys(todasTurmas).sort();
+    let temDados = false;
 
-        chavesOrdenadas.forEach(chave => {
-            // Limpa o nome da chave (ex: status_6ºA -> 6º A)
-            const nomeExibicao = chave.replace("status_", "").replace(/(\d+º)([A-Z])/, "$1 $2");
-            relatorio += `🔹 *TURMA: ${nomeExibicao}*\n`;
+    // Percorre cada turma dentro do banco
+    Object.keys(todasTurmas).forEach(chave => {
+      const listaDisciplinas = todasTurmas[chave];
+      
+      // Limpa o nome da chave para ficar bonito (ex: status_6ºA vira 6º A)
+      const nomeTurma = chave.replace("status_", "").replace(/([0-9]º)([A-Z])/, "$1 $2");
+      
+      relatorio += `🔹 *TURMA: ${nomeTurma}*\n`;
 
-            todasTurmas[chave].forEach(d => {
-                const prof = d.professor ? d.professor.trim() : "❌ NÃO LANÇADO";
-                relatorio += `• ${d.disciplina}: ${prof}\n`;
-            });
-            relatorio += "\n";
-        });
+      listaDisciplinas.forEach(d => {
+        const nomeProf = d.professor ? d.professor.trim() : "❌ NÃO LANÇADO";
+        relatorio += `• ${d.disciplina}: ${nomeProf}\n`;
+      });
 
-        relatorio += "⚠️ _Favor conferir se seu nome está correto na disciplina correspondente._";
-
-        // Copia para a área de transferência
-        navigator.clipboard.writeText(relatorio).then(() => {
-            alert("Varredura concluída! Lista copiada para o WhatsApp.");
-        }).catch(err => {
-            console.error("Erro ao copiar: ", err);
-            alert("Erro ao copiar. Verifique o console.");
-        });
+      relatorio += "\n";
+      temDados = true;
     });
+
+    if (!temDados) {
+      alert("As turmas existem, mas estão vazias.");
+      return;
+    }
+
+    relatorio += "⚠️ _Favor conferir se seu nome está correto._";
+
+    // Copia o texto para o seu celular/computador
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(relatorio).then(() => alert("Varredura concluída! Lista copiada para o WhatsApp."));
+    } else {
+      // Método reserva para navegadores mais antigos ou conexões sem HTTPS
+      const ta = document.createElement("textarea");
+      ta.value = relatorio;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      alert("Varredura concluída! Lista copiada.");
+    }
+  }).catch(erro => {
+    console.error(erro);
+    alert("Erro ao acessar o Firebase: " + erro.message);
+  });
 }
