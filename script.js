@@ -8,7 +8,7 @@ const firebaseConfig = {
   appId: "1:358848317719:web:42feccdc979a1776cc8f52",
   measurementId: "G-N0Z5CZHEXK",
   // ESSA LINHA É A CHAVE PARA FUNCIONAR:
-  databaseURL: "https://acompanhamento-pedagogico2026-default-rtdb.firebaseio.com"
+  databaseURL: "https://acompanhamento-pedagogico2026-default-rtdb.asia-southeast1.firebasedatabase.app"
 };
 
 // Inicializa o Firebase
