@@ -1,4 +1,4 @@
-// 1. CONFIGURAÇÃO DO FIREBASE (Suas chaves reais)
+// 1. CONFIGURAÇÃO DO FIREBASE (Suas credenciais oficiais)
 const firebaseConfig = {
   apiKey: "AIzaSyDliIAcOCvgChv68cog27jenACkpF8MCyg",
   authDomain: "acompanhamento-pedagogico2026.firebaseapp.com",
@@ -7,14 +7,15 @@ const firebaseConfig = {
   messagingSenderId: "358848317719",
   appId: "1:358848317719:web:42feccdc979a1776cc8f52",
   measurementId: "G-N0Z5CZHEXK",
+  // A linha abaixo é fundamental para o status sair de "Verificando..."
   databaseURL: "https://acompanhamento-pedagogico2026-default-rtdb.firebaseio.com"
 };
 
-// Inicializa o Firebase
+// Inicialização
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// 2. ESTRUTURA PEDAGÓGICA
+// 2. CONFIGURAÇÕES DA ESCOLA
 const turmasBase = {
     "6º": ["A","B","C","D","E"],
     "7º": ["A","B","C","D","E","F"],
@@ -27,7 +28,23 @@ const disciplinasBase = [
     "Matemática", "Ciências", "História", "Geografia"
 ];
 
-// 3. INICIALIZAÇÃO DA INTERFACE
+// 3. MONITOR DE CONEXÃO (O ponto no cabeçalho)
+const ponto = document.getElementById('pontoStatus');
+const texto = document.getElementById('textoStatus');
+
+db.ref(".info/connected").on("value", (snap) => {
+    if (snap.val() === true) {
+        ponto.style.backgroundColor = "#16a34a"; // Verde
+        texto.innerText = "Sincronizado com Firebase Cloud";
+        texto.style.color = "#16a34a";
+    } else {
+        ponto.style.backgroundColor = "#b91c1c"; // Vermelho
+        texto.innerText = "Offline - Verifique sua conexão";
+        texto.style.color = "#b91c1c";
+    }
+});
+
+// 4. INICIALIZAÇÃO DA INTERFACE
 window.onload = () => {
     const anoSel = document.getElementById("ano");
     if(anoSel) {
@@ -39,8 +56,6 @@ window.onload = () => {
         carregarTurmas();
     }
 };
-
-document.getElementById("ano").addEventListener("change", carregarTurmas);
 
 function carregarTurmas() {
     const ano = document.getElementById("ano").value;
@@ -54,13 +69,13 @@ function carregarTurmas() {
     });
 }
 
-// 4. LÓGICA DE BANCO DE DADOS ONLINE (REALTIME DATABASE)
+// 5. GESTÃO DE DADOS ONLINE (CRUD)
 function abrirTurma() {
     const ano = document.getElementById("ano").value;
     const turma = document.getElementById("turma").value;
     const chave = `${ano}${turma}`;
 
-    // Escuta mudanças em tempo real
+    // Escuta mudanças em tempo real no banco
     db.ref('pedagogico/' + chave).on('value', (snapshot) => {
         let dados = snapshot.val();
         if (!dados) {
@@ -80,26 +95,11 @@ function renderTabela(dados, chave) {
 
     dados.forEach((d, i) => {
         const tr = document.createElement("tr");
-        if(d.planejamento && d.pei) tr.style.background = "#f0fdf4";
-
         tr.innerHTML = `
-            <td>
-                <b>${d.disciplina}</b>
-                ${d.obs ? `<br><small style="color:gray">📝 ${d.obs}</small>` : ''}
-            </td>
+            <td><b>${d.disciplina}</b>${d.obs ? `<br><small>📝 ${d.obs}</small>` : ''}</td>
             <td>${d.professor || "—"}</td>
-            <td>
-                <button class="badge ${d.planejamento ? 'ok' : 'pend'}" 
-                    onclick="toggleStatus('${chave}',${i},'planejamento')">
-                    ${d.planejamento ? 'PLAN. OK' : 'PENDENTE'}
-                </button>
-            </td>
-            <td>
-                <button class="badge ${d.pei ? 'ok' : 'pend'}" 
-                    onclick="toggleStatus('${chave}',${i},'pei')">
-                    ${d.pei ? 'PEI OK' : 'PENDENTE'}
-                </button>
-            </td>
+            <td><button class="badge ${d.planejamento ? 'ok' : 'pend'}" onclick="toggleStatus('${chave}',${i},'planejamento')">${d.planejamento ? 'OK' : 'PEND'}</button></td>
+            <td><button class="badge ${d.pei ? 'ok' : 'pend'}" onclick="toggleStatus('${chave}',${i},'pei')">${d.pei ? 'OK' : 'PEND'}</button></td>
             <td><button class="editBtn" onclick="editarLinha('${chave}',${i})">✏️</button></td>
         `;
         tb.appendChild(tr);
@@ -109,8 +109,8 @@ function renderTabela(dados, chave) {
 function toggleStatus(chave, i, campo) {
     const ref = db.ref(`pedagogico/${chave}/${i}`);
     ref.once('value', (snap) => {
-        const dados = snap.val();
-        ref.update({ [campo]: !dados[campo] });
+        const val = snap.val()[campo];
+        ref.update({ [campo]: !val });
     });
 }
 
@@ -119,47 +119,42 @@ function editarLinha(chave, i) {
     ref.once('value', (snap) => {
         const d = snap.val();
         const prof = prompt("Nome do Professor:", d.professor);
+        const observacao = prompt("Observações:", d.obs);
         if (prof !== null) {
-            const observacao = prompt("Observações:", d.obs);
-            ref.update({
-                professor: prof.trim(),
-                obs: observacao ? observacao.trim() : ""
-            });
+            ref.update({ professor: prof.trim(), obs: observacao ? observacao.trim() : "" });
         }
     });
 }
 
-// 5. RELATÓRIOS
+// 6. RELATÓRIOS (WhatsApp e Imagem)
 function copiarPendenciasProfessor() {
-    const profBusca = document.getElementById("profPendencias").value.trim();
-    if (!profBusca) return alert("Digite o nome do professor");
+    const busca = document.getElementById("profPendencias").value.trim().toLowerCase();
+    if (!busca) return alert("Digite o nome do professor");
     
-    db.ref('pedagogico/').once('value', (snapshot) => {
-        const todasTurmas = snapshot.val();
-        let txt = `*RELATÓRIO DE PENDÊNCIAS - PROF. ${profBusca.toUpperCase()}*\n\n`;
+    db.ref('pedagogico/').once('value', (snap) => {
+        const todas = snap.val();
+        let txt = `*RELATÓRIO DE PENDÊNCIAS - PROF. ${busca.toUpperCase()}*\n\n`;
         let achou = false;
 
-        for (let idTurma in todasTurmas) {
-            todasTurmas[idTurma].forEach(d => {
-                if (d.professor && d.professor.toLowerCase().includes(profBusca.toLowerCase())) {
-                    if (!d.planejamento || !d.pei) {
-                        txt += `📍 *Turma ${idTurma}* - ${d.disciplina}\n`;
-                        if (!d.planejamento) txt += `  • Planejamento pendente\n`;
-                        if (!d.pei) txt += `  • PEI pendente\n`;
-                        txt += `\n`;
-                        achou = true;
-                    }
+        for (let t in todas) {
+            todas[t].forEach(d => {
+                if (d.professor.toLowerCase().includes(busca) && (!d.planejamento || !d.pei)) {
+                    txt += `📍 *${t}* - ${d.disciplina}\n`;
+                    if(!d.planejamento) txt += ` • Planejamento ❌\n`;
+                    if(!d.pei) txt += ` • PEI ❌\n`;
+                    txt += `\n`; achou = true;
                 }
             });
         }
-        achou ? navigator.clipboard.writeText(txt).then(() => alert("Copiado!")) : alert("Nada pendente.");
+        achou ? navigator.clipboard.writeText(txt).then(() => alert("Relatório copiado!")) : alert("Tudo OK para este professor.");
     });
 }
 
 function baixarImagem() {
-    html2canvas(document.getElementById("areaTurma")).then(canvas => {
+    const area = document.getElementById("areaTurma");
+    html2canvas(area).then(canvas => {
         const link = document.createElement("a");
-        link.download = `relatorio_pedagogico_${new Date().getTime()}.png`;
+        link.download = `relatorio_${new Date().toLocaleDateString()}.png`;
         link.href = canvas.toDataURL();
         link.click();
     });
