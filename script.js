@@ -183,25 +183,23 @@ function baixarImagem(){
   });
 }
 function varreduraGeral() {
-  // Acessa a pasta principal onde todas as turmas estão guardadas
   db.ref("turmas").once("value").then(snap => {
     const todasTurmas = snap.val();
     
     if (!todasTurmas) {
-      alert("Nenhum dado encontrado no Firebase. Abra as turmas primeiro.");
+      alert("Nenhum dado encontrado. Abra as turmas primeiro para criá-las no banco.");
       return;
     }
 
     let relatorio = "📊 *QUADRO GERAL DE PROFESSORES 2026*\n";
     relatorio += "*Escola Estadual Militar Dom Pedro II*\n\n";
 
-    let temDados = false;
+    // Ordena as chaves (turmas) para o relatório sair organizado
+    const chavesOrdenadas = Object.keys(todasTurmas).sort();
 
-    // Percorre cada turma dentro do banco
-    Object.keys(todasTurmas).forEach(chave => {
+    chavesOrdenadas.forEach(chave => {
       const listaDisciplinas = todasTurmas[chave];
-      
-      // Limpa o nome da chave para ficar bonito (ex: status_6ºA vira 6º A)
+      // Transforma "status_6ºA" em "6º A" para o texto ficar bonito
       const nomeTurma = chave.replace("status_", "").replace(/([0-9]º)([A-Z])/, "$1 $2");
       
       relatorio += `🔹 *TURMA: ${nomeTurma}*\n`;
@@ -212,31 +210,14 @@ function varreduraGeral() {
       });
 
       relatorio += "\n";
-      temDados = true;
     });
-
-    if (!temDados) {
-      alert("As turmas existem, mas estão vazias.");
-      return;
-    }
 
     relatorio += "⚠️ _Favor conferir se seu nome está correto._";
 
-    // Copia o texto para o seu celular/computador
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(relatorio).then(() => alert("Varredura concluída! Lista copiada para o WhatsApp."));
-    } else {
-      // Método reserva para navegadores mais antigos ou conexões sem HTTPS
-      const ta = document.createElement("textarea");
-      ta.value = relatorio;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand("copy");
-      document.body.removeChild(ta);
-      alert("Varredura concluída! Lista copiada.");
-    }
+    // Usa a sua função copiarTexto que já existe no código
+    copiarTexto(relatorio);
   }).catch(erro => {
     console.error(erro);
-    alert("Erro ao acessar o Firebase: " + erro.message);
+    alert("Erro ao acessar o banco de dados.");
   });
 }
