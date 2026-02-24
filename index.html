@@ -1,81 +1,47 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Lançamentos 2026 - EEM Dom Pedro II</title>
-    
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acompanhamento Pedagógico</title>
 
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+<link rel="stylesheet" href="style.css">
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+<!-- html2canvas -->
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
+
 <body>
 
-    <div class="topo">
-        <img src="brasao-escola.jpeg" height="80" alt="Brasão da Escola">
-        <div>
-            <h1>PAINEL DE LANÇAMENTOS 2026</h1>
-            <div class="subtitulo">Escola Estadual Militar Dom Pedro II</div>
-        </div>
-    </div>
+<header>
+<h1>📋 Acompanhamento Pedagógico</h1>
+<p>Escola Estadual Militar Dom Pedro II</p>
+</header>
 
-    <div id="statusConexao" style="text-align: center; margin-bottom: 20px;">
-        <span id="pontoStatus" style="height: 12px; width: 12px; background-color: #bbb; border-radius: 50%; display: inline-block; margin-right: 8px;"></span>
-        <small id="textoStatus" style="color: #666; font-weight: bold; font-family: sans-serif;">
-            Verificando conexão com a nuvem...
-        </small>
-    </div>
+<section class="painel">
 
-    <div class="card">
-        <h2>Busca por Professor (Todas as Turmas)</h2>
-        <div style="display: flex; gap: 10px;">
-            <input id="profPendencias" style="flex: 2;" placeholder="Digite o nome completo do professor">
-            <button class="sec" style="flex: 1;" onclick="copiarPendenciasProfessor()">📋 GERAR RELATÓRIO WHATSAPP</button>
-        </div>
-    </div>
+<div class="topo">
+<select id="turmaSelect"></select>
+<button onclick="carregarTurma()">Abrir turma</button>
+</div>
 
-    <div class="card" id="areaTurma">
-        <h2>Acompanhamento por Turma</h2>
-        
-        <div class="seletores" style="display: flex; gap: 15px; margin-bottom: 15px;">
-            <div style="flex: 1;">
-                <label>Ano / Série</label>
-                <select id="ano" onchange="carregarTurmas()"></select>
-            </div>
-            <div style="flex: 1;">
-                <label>Turma</label>
-                <select id="turma"></select>
-            </div>
-        </div>
+<div class="acoes">
+<button onclick="copiarResumoTurma()">📱 Copiar resumo turma</button>
 
-        <div class="btn-group" style="display: flex; gap: 10px; margin-bottom: 20px;">
-            <button style="flex: 1;" onclick="abrirTurma()">🔍 VISUALIZAR TURMA</button>
-            <button class="ok" style="flex: 1;" onclick="copiarResumoTurma()">📝 COPIAR RESUMO</button>
-            <button class="warn" style="flex: 1;" onclick="baixarImagem()">🖼️ BAIXAR FOTO DO PAINEL</button>
-        </div>
+<input id="profPendencias" placeholder="Nome do professor">
+<button onclick="copiarPendenciasProfessor()">📱 Pendências professor</button>
 
-        <table id="tabelaDados" style="width: 100%; border-collapse: collapse;">
-            <thead>
-                <tr style="background-color: #1e3a8a; color: white;">
-                    <th style="padding: 12px;">DISCIPLINA</th>
-                    <th>PROFESSOR</th>
-                    <th>PLANEJAMENTO</th>
-                    <th>LANÇAMENTO PEI</th>
-                    <th>AÇÕES</th>
-                </tr>
-            </thead>
-            <tbody id="tabelaBody">
-                </tbody>
-        </table>
-    </div>
+<button onclick="baixarImagem()">📥 Baixar imagem</button>
+</div>
 
-    <div style="text-align: center; margin-top: 30px; color: #94a3b8; font-size: 0.8rem;">
-        SISTEMA DE GESTÃO PEDAGÓGICA - 2026
-    </div>
+<div id="areaTurma"></div>
 
-    <script src="script.js"></script>
+</section>
 
+<script src="script.js"></script>
 </body>
 </html>
