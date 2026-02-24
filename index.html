@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Pedagógico 2026 - EEM Dom Pedro II</title>
+    <title>Sistema Pedagógico 2026 - EEM Dom Pedro II</title>
     
     <link rel="stylesheet" href="style.css">
 
@@ -23,22 +23,19 @@
 
     <div id="statusConexao" style="text-align: center; margin-bottom: 20px;">
         <span id="pontoStatus" style="height: 12px; width: 12px; background-color: #bbb; border-radius: 50%; display: inline-block; margin-right: 8px;"></span>
-        <small id="textoStatus" style="color: #666; font-weight: bold; font-family: sans-serif;">
-            Verificando conexão com a nuvem...
-        </small>
+        <small id="textoStatus" style="color: #666; font-weight: bold;">Verificando conexão com Firebase...</small>
     </div>
 
     <div class="card">
-        <h2>Busca por Professor (Todas as Turmas)</h2>
+        <h2>Busca por Professor</h2>
         <div style="display: flex; gap: 10px;">
             <input id="profPendencias" style="flex: 2;" placeholder="Digite o nome completo do professor">
-            <button class="sec" style="flex: 1;" onclick="copiarPendenciasProfessor()">📋 Gerar Relatório WhatsApp</button>
+            <button class="sec" style="flex: 1;" onclick="copiarPendenciasProfessor()">📋 Relatório WhatsApp</button>
         </div>
     </div>
 
     <div class="card" id="areaTurma">
         <h2>Acompanhamento por Turma</h2>
-        
         <div class="seletores" style="display: flex; gap: 15px; margin-bottom: 15px;">
             <div style="flex: 1;">
                 <label>Ano / Série</label>
@@ -53,7 +50,7 @@
         <div class="btn-group">
             <button onclick="abrirTurma()">🔍 Visualizar Turma</button>
             <button class="ok" onclick="copiarResumoTurma()">📝 Copiar Resumo</button>
-            <button class="warn" onclick="baixarImagem()">🖼️ Baixar Foto do Painel</button>
+            <button class="warn" onclick="baixarImagem()">🖼️ Baixar Foto</button>
         </div>
 
         <table id="tabelaDados">
@@ -62,20 +59,14 @@
                     <th>Disciplina</th>
                     <th>Professor</th>
                     <th>Planejamento</th>
-                    <th>Lançamento PEI</th>
+                    <th>PEI</th>
                     <th>Ações</th>
                 </tr>
             </thead>
-            <tbody id="tabelaBody">
-                </tbody>
+            <tbody id="tabelaBody"></tbody>
         </table>
     </div>
 
-    <div style="text-align: center; margin-top: 30px; color: #94a3b8;">
-        <small>Sistema de Gestão Escolar - 2026</small>
-    </div>
-
     <script src="script.js"></script>
-
 </body>
 </html>
