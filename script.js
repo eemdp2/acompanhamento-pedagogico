@@ -182,3 +182,40 @@ function baixarImagem(){
     link.click();
   });
 }
+function varreduraGeral() {
+    db.ref("turmas").once("value").then(snap => {
+        const todasTurmas = snap.val() || {};
+        if (Object.keys(todasTurmas).length === 0) {
+            alert("Nenhum dado encontrado no banco de dados.");
+            return;
+        }
+
+        let relatorio = "📊 *QUADRO GERAL DE PROFESSORES 2026*\n";
+        relatorio += "*Escola Estadual Militar Dom Pedro II*\n\n";
+
+        // Ordenar as turmas para o relatório ficar bonito
+        const chavesOrdenadas = Object.keys(todasTurmas).sort();
+
+        chavesOrdenadas.forEach(chave => {
+            // Limpa o nome da chave (ex: status_6ºA -> 6º A)
+            const nomeExibicao = chave.replace("status_", "").replace(/(\d+º)([A-Z])/, "$1 $2");
+            relatorio += `🔹 *TURMA: ${nomeExibicao}*\n`;
+
+            todasTurmas[chave].forEach(d => {
+                const prof = d.professor ? d.professor.trim() : "❌ NÃO LANÇADO";
+                relatorio += `• ${d.disciplina}: ${prof}\n`;
+            });
+            relatorio += "\n";
+        });
+
+        relatorio += "⚠️ _Favor conferir se seu nome está correto na disciplina correspondente._";
+
+        // Copia para a área de transferência
+        navigator.clipboard.writeText(relatorio).then(() => {
+            alert("Varredura concluída! Lista copiada para o WhatsApp.");
+        }).catch(err => {
+            console.error("Erro ao copiar: ", err);
+            alert("Erro ao copiar. Verifique o console.");
+        });
+    });
+}
