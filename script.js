@@ -12,179 +12,173 @@ appId: "1:358848317719:web:42feccdc979a1776cc8f52"
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// TURMAS
-const turmas = [
-"6A","6B","6C","6D","6E",
-"7A","7B","7C","7D","7E","7F"
-];
+// ===============================
+// STATUS CONEXÃO FIREBASE
+// ===============================
+const statusDiv = document.createElement("div");
+statusDiv.style.textAlign = "center";
+statusDiv.style.margin = "10px";
+statusDiv.style.fontWeight = "bold";
+statusDiv.innerHTML = "🔄 Verificando conexão Firebase...";
+document.body.insertBefore(statusDiv, document.body.firstChild);
 
-const disciplinas = [
-"Língua Portuguesa","Arte","Educação Física","Inglês",
-"Matemática","Ciências","História","Geografia"
-];
-
-// POPULAR SELECT
-const select = document.getElementById("turmaSelect");
-turmas.forEach(t=>{
-let op=document.createElement("option");
-op.value=t;
-op.text=t;
-select.appendChild(op);
+db.ref(".info/connected").on("value", snap => {
+  if (snap.val() === true) {
+    statusDiv.innerHTML = "🟢 Firebase conectado";
+    statusDiv.style.color = "#16a34a";
+  } else {
+    statusDiv.innerHTML = "🔴 Firebase desconectado";
+    statusDiv.style.color = "#dc2626";
+  }
 });
 
-// ABRIR TURMA
-function carregarTurma(){
-const turma = select.value;
+// ===============================
+// BASE
+// ===============================
+const turmasBase={"6º":["A","B","C","D","E"],"7º":["A","B","C","D","E","F"]};
+const disciplinasBase=["Língua Portuguesa","Arte","Educação Física","Inglês","Matemática","Ciências","História","Geografia"];
 
-db.ref("pedagogico/"+turma).once("value",snap=>{
-let dados = snap.val();
+// ===============================
+// INIT
+// ===============================
+window.onload=function(){
+  const anoSel=document.getElementById("ano");
+  Object.keys(turmasBase).forEach(a=>{
+    const op=document.createElement("option");
+    op.textContent=a;
+    anoSel.appendChild(op);
+  });
+  carregarTurmas();
+};
 
-if(!dados){
-dados = disciplinas.map(d=>({
-disciplina:d,
-professor:"",
-planejamento:false,
-pei:false
-}));
-db.ref("pedagogico/"+turma).set(dados);
+document.getElementById("ano").addEventListener("change",carregarTurmas);
+
+function carregarTurmas(){
+  const ano=document.getElementById("ano").value;
+  const turmaSel=document.getElementById("turma");
+  turmaSel.innerHTML="";
+  turmasBase[ano].forEach(t=>{
+    const op=document.createElement("option");
+    op.textContent=t;
+    turmaSel.appendChild(op);
+  });
 }
 
-renderTabela(turma,dados);
-});
+// ===============================
+// ABRIR TURMA (FIREBASE)
+// ===============================
+function abrirTurma(){
+  const ano=document.getElementById("ano").value;
+  const turma=document.getElementById("turma").value;
+  const chave="status_"+ano+turma;
+
+  db.ref("turmas/"+chave).once("value").then(snap=>{
+    let dados=snap.val();
+
+    if(!dados){
+      dados=disciplinasBase.map(d=>({
+        ano,turma,disciplina:d,professor:"",ok:false
+      }));
+      db.ref("turmas/"+chave).set(dados);
+    }
+
+    renderTabela(dados,chave);
+  });
 }
 
-// RENDER
-function renderTabela(turma,dados){
+function renderTabela(dados,chave){
+  const tb=document.getElementById("tabela");
+  tb.innerHTML="";
 
-let html=`
-<h2>Turma ${turma}</h2>
-<p>Data: ${dataBR()} — Hora: ${horaAmazonas()}</p>
+  dados.forEach((d,i)=>{
+    const tr=document.createElement("tr");
+    tr.className=d.ok?"ok":"pend";
 
-<table>
-<tr>
-<th>Disciplina</th>
-<th>Professor</th>
-<th>Planejamento</th>
-<th>PEI</th>
-</tr>
-`;
-
-dados.forEach((d,i)=>{
-
-html+=`
-<tr>
-<td>${d.disciplina}</td>
-
-<td class="professor" onclick="editarProfessor('${turma}',${i})">
-${d.professor||"—"}
-</td>
-
-<td class="${d.planejamento?'ok':'pendente'}"
-onclick="toggle('${turma}',${i},'planejamento')">
-${d.planejamento?'OK':'Pendente'}
-</td>
-
-<td class="${d.pei?'ok':'pendente'}"
-onclick="toggle('${turma}',${i},'pei')">
-${d.pei?'OK':'Pendente'}
-</td>
-
-</tr>
-`;
-});
-
-html+=`</table>`;
-
-document.getElementById("areaTurma").innerHTML=html;
+    tr.innerHTML=`
+      <td>${d.disciplina}</td>
+      <td>${d.professor||"—"}</td>
+      <td class="status" onclick="toggleStatus('${chave}',${i})">${d.ok?"OK":"PENDENTE"}</td>
+      <td><button class="editBtn" onclick="editarProf('${chave}',${i})">Editar</button></td>
+    `;
+    tb.appendChild(tr);
+  });
 }
 
-// EDITAR PROFESSOR
-function editarProfessor(turma,i){
-const nome=prompt("Nome do professor:");
-if(nome==null) return;
-
-db.ref("pedagogico/"+turma).once("value",snap=>{
-let dados=snap.val();
-dados[i].professor=nome;
-db.ref("pedagogico/"+turma).set(dados);
-renderTabela(turma,dados);
-});
+function toggleStatus(chave,i){
+  const ref=db.ref("turmas/"+chave+"/"+i+"/ok");
+  ref.once("value").then(snap=>{
+    ref.set(!snap.val());
+    abrirTurma();
+  });
 }
 
-// TOGGLE STATUS
-function toggle(turma,i,campo){
-db.ref("pedagogico/"+turma).once("value",snap=>{
-let dados=snap.val();
-dados[i][campo]=!dados[i][campo];
-db.ref("pedagogico/"+turma).set(dados);
-renderTabela(turma,dados);
-});
+function editarProf(chave,i){
+  const ref=db.ref("turmas/"+chave+"/"+i);
+  ref.once("value").then(snap=>{
+    const d=snap.val();
+    const nome=prompt("Nome do professor:",d.professor||"");
+    if(nome!==null){
+      ref.update({professor:nome.trim()});
+      abrirTurma();
+    }
+  });
 }
 
-// DATA BR
-function dataBR(){
-const d=new Date();
-return d.toLocaleDateString("pt-BR");
+// ===============================
+// COPIAR
+// ===============================
+function copiarTexto(txt){
+  navigator.clipboard.writeText(txt).then(()=>alert("Copiado 👍"));
 }
 
-// HORA AMAZONAS
-function horaAmazonas(){
-return new Date().toLocaleTimeString("pt-BR",{timeZone:"America/Manaus"});
-}
-
-// COPIAR RESUMO TURMA
 function copiarResumoTurma(){
-const turma=select.value;
+  const ano=document.getElementById("ano").value;
+  const turma=document.getElementById("turma").value;
+  const chave="status_"+ano+turma;
 
-db.ref("pedagogico/"+turma).once("value",snap=>{
-const dados=snap.val();
-let txt=`📋 Acompanhamento Pedagógico\nTurma ${turma}\n\n`;
+  db.ref("turmas/"+chave).once("value").then(snap=>{
+    const dados=snap.val()||[];
+    let txt=`Escola Estadual Militar Dom Pedro II\nTurma ${ano} ${turma}\n\n`;
 
-dados.forEach(d=>{
-txt+=`${d.disciplina} — ${d.professor||"—"}\n`;
-txt+=`Planejamento: ${d.planejamento?'OK':'PEND'} | PEI: ${d.pei?'OK':'PEND'}\n\n`;
-});
+    dados.forEach(d=>{
+      txt+=`${d.disciplina} — ${d.professor||"(sem prof)"} — ${d.ok?"OK":"PENDENTE"}\n`;
+    });
 
-navigator.clipboard.writeText(txt);
-alert("Resumo copiado ✔");
-});
+    copiarTexto(txt);
+  });
 }
 
-// COPIAR PENDÊNCIAS PROFESSOR
 function copiarPendenciasProfessor(){
-const nome=document.getElementById("profPendencias").value.toLowerCase();
-if(!nome) return alert("Digite o professor");
+  const prof=document.getElementById("profPendencias").value.trim();
+  if(!prof){alert("Digite o nome");return}
 
-db.ref("pedagogico").once("value",snap=>{
-const turmas=snap.val();
+  db.ref("turmas").once("value").then(snap=>{
+    const turmas=snap.val()||{};
+    let txt=`Pendências do professor ${prof}\n\n`;
+    let achou=false;
 
-let txt=`📋 Pendências do Professor\n${nome.toUpperCase()}\n\n`;
-let tem=false;
+    Object.values(turmas).forEach(lista=>{
+      lista.forEach(d=>{
+        if(d.professor===prof && !d.ok){
+          txt+=`${d.ano} ${d.turma} — ${d.disciplina}\n`;
+          achou=true;
+        }
+      });
+    });
 
-for(const t in turmas){
-turmas[t].forEach(d=>{
-if(d.professor && d.professor.toLowerCase().includes(nome)){
-if(!d.planejamento || !d.pei){
-txt+=`Turma ${t} — ${d.disciplina}\n`;
-txt+=`Planejamento: ${d.planejamento?'OK':'PEND'} | PEI: ${d.pei?'OK':'PEND'}\n\n`;
-tem=true;
-}
-}
-});
-}
-
-if(!tem) txt+="Sem pendências ✔";
-
-navigator.clipboard.writeText(txt);
-alert("Pendências copiadas ✔");
-});
+    if(!achou){alert("Nenhuma pendência");return}
+    copiarTexto(txt);
+  });
 }
 
-// BAIXAR IMAGEM
+// ===============================
+// IMAGEM
+// ===============================
 function baixarImagem(){
-html2canvas(document.getElementById("areaTurma")).then(canvas=>{
-const img=canvas.toDataURL("image/png");
-const w=window.open("");
-w.document.write(`<img src="${img}">`);
-});
+  html2canvas(document.getElementById("areaTurma")).then(canvas=>{
+    const link=document.createElement("a");
+    link.download="turma.png";
+    link.href=canvas.toDataURL();
+    link.click();
+  });
 }
