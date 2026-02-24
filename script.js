@@ -183,41 +183,36 @@ function baixarImagem(){
   });
 }
 function varreduraGeral() {
-  db.ref("turmas").once("value").then(snap => {
-    const todasTurmas = snap.val();
-    
-    if (!todasTurmas) {
-      alert("Nenhum dado encontrado. Abra as turmas primeiro para criá-las no banco.");
-      return;
-    }
-
-    let relatorio = "📊 *QUADRO GERAL DE PROFESSORES 2026*\n";
-    relatorio += "*Escola Estadual Militar Dom Pedro II*\n\n";
-
-    // Ordena as chaves (turmas) para o relatório sair organizado
-    const chavesOrdenadas = Object.keys(todasTurmas).sort();
-
-    chavesOrdenadas.forEach(chave => {
-      const listaDisciplinas = todasTurmas[chave];
-      // Transforma "status_6ºA" em "6º A" para o texto ficar bonito
-      const nomeTurma = chave.replace("status_", "").replace(/([0-9]º)([A-Z])/, "$1 $2");
+  console.log("Iniciando varredura..."); // Isso aparecerá no F12
+  
+  db.ref("turmas").once("value")
+    .then(snap => {
+      const todasTurmas = snap.val();
       
-      relatorio += `🔹 *TURMA: ${nomeTurma}*\n`;
+      if (!todasTurmas) {
+        alert("⚠️ O banco está vazio! Abra uma turma primeiro para criá-la.");
+        return;
+      }
 
-      listaDisciplinas.forEach(d => {
-        const nomeProf = d.professor ? d.professor.trim() : "❌ NÃO LANÇADO";
-        relatorio += `• ${d.disciplina}: ${nomeProf}\n`;
+      let relatorio = "📊 *QUADRO GERAL DE PROFESSORES 2026*\n\n";
+      Object.keys(todasTurmas).sort().forEach(chave => {
+        const nomeTurma = chave.replace("status_", "").replace(/([0-9]º)([A-Z])/, "$1 $2");
+        relatorio += `🔹 *TURMA: ${nomeTurma}*\n`;
+        todasTurmas[chave].forEach(d => {
+          relatorio += `• ${d.disciplina}: ${d.professor || "❌"}\n`;
+        });
+        relatorio += "\n";
       });
 
-      relatorio += "\n";
+      // Tenta copiar. Se falhar, mostra o texto num alerta para você copiar manualmente
+      navigator.clipboard.writeText(relatorio)
+        .then(() => alert("✅ Lista copiada com sucesso!"))
+        .catch(err => {
+          console.error("Erro ao copiar:", err);
+          alert("O navegador bloqueou a cópia automática. Use o link da Vercel (HTTPS) para liberar.");
+        });
+    })
+    .catch(erro => {
+      alert("❌ Erro no Firebase: " + erro.message);
     });
-
-    relatorio += "⚠️ _Favor conferir se seu nome está correto._";
-
-    // Usa a sua função copiarTexto que já existe no código
-    copiarTexto(relatorio);
-  }).catch(erro => {
-    console.error(erro);
-    alert("Erro ao acessar o banco de dados.");
-  });
 }
