@@ -1,12 +1,12 @@
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// FIREBASE
 const firebaseConfig = {
-  apiKey: "AIzaSyDliIAcOCvgChv68cog27jenACkpF8MCyg",
-  authDomain: "acompanhamento-pedagogico2026.firebaseapp.com",
-  projectId: "acompanhamento-pedagogico2026",
-  storageBucket: "acompanhamento-pedagogico2026.firebasestorage.app",
-  messagingSenderId: "358848317719",
-  appId: "1:358848317719:web:42feccdc979a1776cc8f52",
-  measurementId: "G-N0Z5CZHEXK"
+apiKey: "AIzaSyDliIAcOCvgChv68cog27jenACkpF8MCyg",
+authDomain: "acompanhamento-pedagogico2026.firebaseapp.com",
+databaseURL: "https://acompanhamento-pedagogico2026-default-rtdb.asia-southeast1.firebasedatabase.app",
+projectId: "acompanhamento-pedagogico2026",
+storageBucket: "acompanhamento-pedagogico2026.appspot.com",
+messagingSenderId: "G-N0Z5CZHEXK",
+appId: "1:358848317719:web:42feccdc979a1776cc8f52"
 };
 
 firebase.initializeApp(firebaseConfig);
