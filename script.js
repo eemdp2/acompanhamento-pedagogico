@@ -1,4 +1,4 @@
-// 1. CONFIGURAÇÃO DO FIREBASE (Suas chaves do projeto acompanhamento-pedagogico2026)
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyDliIAcOCvgChv68cog27jenACkpF8MCyg",
   authDomain: "acompanhamento-pedagogico2026.firebaseapp.com",
@@ -6,137 +6,185 @@ const firebaseConfig = {
   storageBucket: "acompanhamento-pedagogico2026.firebasestorage.app",
   messagingSenderId: "358848317719",
   appId: "1:358848317719:web:42feccdc979a1776cc8f52",
-  measurementId: "G-N0Z5CZHEXK",
-  // ESSA LINHA É A CHAVE PARA FUNCIONAR:
-  databaseURL: "https://acompanhamento-pedagogico2026-default-rtdb.asia-southeast1.firebasedatabase.app"
+  measurementId: "G-N0Z5CZHEXK"
 };
 
-// Inicializa o Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// 2. MONITOR DE CONEXÃO EM TEMPO REAL
-const ponto = document.getElementById('pontoStatus');
-const texto = document.getElementById('textoStatus');
-
-// Verifica se o navegador conseguiu "falar" com o Google
-db.ref(".info/connected").on("value", (snap) => {
-    if (snap.val() === true) {
-        ponto.style.backgroundColor = "#16a34a"; // Verde (Sincronizado)
-        texto.innerText = "Sincronizado com Firebase Cloud";
-        texto.style.color = "#16a34a";
-    } else {
-        ponto.style.backgroundColor = "#b91c1c"; // Vermelho (Offline)
-        texto.innerText = "Offline - Tentando reconectar...";
-        texto.style.color = "#b91c1c";
-    }
-});
-
-// 3. ESTRUTURA PEDAGÓGICA (6º ao 9º ano)
-const turmasBase = {
-    "6º": ["A","B","C","D","E"],
-    "7º": ["A","B","C","D","E","F"],
-    "8º": ["A","B","C"],
-    "9º": ["A","B"]
-};
-
-const disciplinasBase = [
-    "Língua Portuguesa", "Arte", "Educação Física", "Inglês", 
-    "Matemática", "Ciências", "História", "Geografia"
+// TURMAS
+const turmas = [
+"6A","6B","6C","6D","6E",
+"7A","7B","7C","7D","7E","7F"
 ];
 
-// 4. INICIALIZAÇÃO DA INTERFACE
-window.onload = () => {
-    const anoSel = document.getElementById("ano");
-    if(anoSel) {
-        Object.keys(turmasBase).forEach(a => {
-            const op = document.createElement("option");
-            op.textContent = a;
-            anoSel.appendChild(op);
-        });
-        carregarTurmas();
-    }
-};
+const disciplinas = [
+"Língua Portuguesa","Arte","Educação Física","Inglês",
+"Matemática","Ciências","História","Geografia"
+];
 
-function carregarTurmas() {
-    const ano = document.getElementById("ano").value;
-    const turmaSel = document.getElementById("turma");
-    if(!turmaSel) return;
-    turmaSel.innerHTML = "";
-    turmasBase[ano].forEach(t => {
-        const op = document.createElement("option");
-        op.textContent = t;
-        turmaSel.appendChild(op);
-    });
+// POPULAR SELECT
+const select = document.getElementById("turmaSelect");
+turmas.forEach(t=>{
+let op=document.createElement("option");
+op.value=t;
+op.text=t;
+select.appendChild(op);
+});
+
+// ABRIR TURMA
+function carregarTurma(){
+const turma = select.value;
+
+db.ref("pedagogico/"+turma).once("value",snap=>{
+let dados = snap.val();
+
+if(!dados){
+dados = disciplinas.map(d=>({
+disciplina:d,
+professor:"",
+planejamento:false,
+pei:false
+}));
+db.ref("pedagogico/"+turma).set(dados);
 }
 
-// 5. FUNÇÕES DE BANCO DE DADOS (FIREBASE)
-function abrirTurma() {
-    const ano = document.getElementById("ano").value;
-    const turma = document.getElementById("turma").value;
-    const chave = `${ano}${turma}`;
-
-    db.ref('pedagogico/' + chave).on('value', (snapshot) => {
-        let dados = snapshot.val();
-        if (!dados) {
-            dados = disciplinasBase.map(d => ({
-                disciplina: d, professor: "", planejamento: false, pei: false, obs: ""
-            }));
-            db.ref('pedagogico/' + chave).set(dados);
-        }
-        renderTabela(dados, chave);
-    });
+renderTabela(turma,dados);
+});
 }
 
-function renderTabela(dados, chave) {
-    const tb = document.getElementById("tabelaBody");
-    if(!tb) return;
-    tb.innerHTML = "";
+// RENDER
+function renderTabela(turma,dados){
 
-    dados.forEach((d, i) => {
-        const tr = document.createElement("tr");
-        if(d.planejamento && d.pei) tr.style.background = "#f0fdf4";
+let html=`
+<h2>Turma ${turma}</h2>
+<p>Data: ${dataBR()} — Hora: ${horaAmazonas()}</p>
 
-        tr.innerHTML = `
-            <td><b>${d.disciplina}</b>${d.obs ? `<br><small>📝 ${d.obs}</small>` : ''}</td>
-            <td>${d.professor || "—"}</td>
-            <td><button class="badge ${d.planejamento ? 'ok' : 'pend'}" onclick="toggleStatus('${chave}',${i},'planejamento')">${d.planejamento ? 'OK' : 'PEND'}</button></td>
-            <td><button class="badge ${d.pei ? 'ok' : 'pend'}" onclick="toggleStatus('${chave}',${i},'pei')">${d.pei ? 'OK' : 'PEND'}</button></td>
-            <td><button class="editBtn" onclick="editarLinha('${chave}',${i})">✏️</button></td>
-        `;
-        tb.appendChild(tr);
-    });
+<table>
+<tr>
+<th>Disciplina</th>
+<th>Professor</th>
+<th>Planejamento</th>
+<th>PEI</th>
+</tr>
+`;
+
+dados.forEach((d,i)=>{
+
+html+=`
+<tr>
+<td>${d.disciplina}</td>
+
+<td class="professor" onclick="editarProfessor('${turma}',${i})">
+${d.professor||"—"}
+</td>
+
+<td class="${d.planejamento?'ok':'pendente'}"
+onclick="toggle('${turma}',${i},'planejamento')">
+${d.planejamento?'OK':'Pendente'}
+</td>
+
+<td class="${d.pei?'ok':'pendente'}"
+onclick="toggle('${turma}',${i},'pei')">
+${d.pei?'OK':'Pendente'}
+</td>
+
+</tr>
+`;
+});
+
+html+=`</table>`;
+
+document.getElementById("areaTurma").innerHTML=html;
 }
 
-function toggleStatus(chave, i, campo) {
-    const ref = db.ref(`pedagogico/${chave}/${i}`);
-    ref.once('value', (snap) => {
-        const val = snap.val()[campo];
-        ref.update({ [campo]: !val });
-    });
+// EDITAR PROFESSOR
+function editarProfessor(turma,i){
+const nome=prompt("Nome do professor:");
+if(nome==null) return;
+
+db.ref("pedagogico/"+turma).once("value",snap=>{
+let dados=snap.val();
+dados[i].professor=nome;
+db.ref("pedagogico/"+turma).set(dados);
+renderTabela(turma,dados);
+});
 }
 
-function editarLinha(chave, i) {
-    const ref = db.ref(`pedagogico/${chave}/${i}`);
-    ref.once('value', (snap) => {
-        const d = snap.val();
-        const prof = prompt("Nome do Professor:", d.professor);
-        const observacao = prompt("Observações (Ex: Faltam 2 PEIs):", d.obs);
-        if (prof !== null) {
-            ref.update({
-                professor: prof.trim(),
-                obs: observacao ? observacao.trim() : ""
-            });
-        }
-    });
+// TOGGLE STATUS
+function toggle(turma,i,campo){
+db.ref("pedagogico/"+turma).once("value",snap=>{
+let dados=snap.val();
+dados[i][campo]=!dados[i][campo];
+db.ref("pedagogico/"+turma).set(dados);
+renderTabela(turma,dados);
+});
 }
 
-// 6. UTILITÁRIOS
-function baixarImagem() {
-    html2canvas(document.getElementById("areaTurma")).then(canvas => {
-        const link = document.createElement("a");
-        link.download = `relatorio_pedagogico.png`;
-        link.href = canvas.toDataURL();
-        link.click();
-    });
+// DATA BR
+function dataBR(){
+const d=new Date();
+return d.toLocaleDateString("pt-BR");
+}
+
+// HORA AMAZONAS
+function horaAmazonas(){
+return new Date().toLocaleTimeString("pt-BR",{timeZone:"America/Manaus"});
+}
+
+// COPIAR RESUMO TURMA
+function copiarResumoTurma(){
+const turma=select.value;
+
+db.ref("pedagogico/"+turma).once("value",snap=>{
+const dados=snap.val();
+let txt=`📋 Acompanhamento Pedagógico\nTurma ${turma}\n\n`;
+
+dados.forEach(d=>{
+txt+=`${d.disciplina} — ${d.professor||"—"}\n`;
+txt+=`Planejamento: ${d.planejamento?'OK':'PEND'} | PEI: ${d.pei?'OK':'PEND'}\n\n`;
+});
+
+navigator.clipboard.writeText(txt);
+alert("Resumo copiado ✔");
+});
+}
+
+// COPIAR PENDÊNCIAS PROFESSOR
+function copiarPendenciasProfessor(){
+const nome=document.getElementById("profPendencias").value.toLowerCase();
+if(!nome) return alert("Digite o professor");
+
+db.ref("pedagogico").once("value",snap=>{
+const turmas=snap.val();
+
+let txt=`📋 Pendências do Professor\n${nome.toUpperCase()}\n\n`;
+let tem=false;
+
+for(const t in turmas){
+turmas[t].forEach(d=>{
+if(d.professor && d.professor.toLowerCase().includes(nome)){
+if(!d.planejamento || !d.pei){
+txt+=`Turma ${t} — ${d.disciplina}\n`;
+txt+=`Planejamento: ${d.planejamento?'OK':'PEND'} | PEI: ${d.pei?'OK':'PEND'}\n\n`;
+tem=true;
+}
+}
+});
+}
+
+if(!tem) txt+="Sem pendências ✔";
+
+navigator.clipboard.writeText(txt);
+alert("Pendências copiadas ✔");
+});
+}
+
+// BAIXAR IMAGEM
+function baixarImagem(){
+html2canvas(document.getElementById("areaTurma")).then(canvas=>{
+const img=canvas.toDataURL("image/png");
+const w=window.open("");
+w.document.write(`<img src="${img}">`);
+});
 }
