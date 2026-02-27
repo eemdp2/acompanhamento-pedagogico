@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Painel de Lançamentos - Firebase</title>
+  <title>Painel de Lançamentos - EEM Dom Pedro II</title>
   
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -16,70 +16,64 @@
     .card{background:#fff;padding:20px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.1);margin-bottom:20px}
     label{font-weight:bold;display:block;margin-top:10px}
     select,input,button{width:100%;padding:8px;margin-top:5px;border-radius:6px;border:1px solid #ccc}
-    button{background:#b91c1c;color:#fff;border:none;cursor:pointer;margin-top:10px}
+    button{background:#b91c1c;color:#fff;border:none;cursor:pointer;margin-top:10px; transition: 0.3s;}
+    button:hover{opacity: 0.8;}
     button.sec{background:#2563eb}
     button.ok{background:#16a34a}
     button.warn{background:#ea580c}
-    table{width:100%;border-collapse:collapse;margin-top:15px}
-    th,td{padding:8px;border-bottom:1px solid #ddd;text-align:left}
-    tr.ok{background:#ecfdf5}
-    tr.pend{background:#fef2f2}
-    .status{cursor:pointer;font-weight:bold}
-    .editBtn{background:#2563eb;margin-top:0}
-    #statusConexao { text-align: center; font-weight: bold; padding: 10px; border-radius: 8px; margin-bottom: 10px; }
+    table{width:100%;border-collapse:collapse;margin-top:15px; background: white;}
+    th,td{padding:10px;border:1px solid #ddd;text-align:left; font-size: 14px;}
+    th{background-color: #1e3a8a; color: white;}
+    tr.ok-total{background:#dcfce7} /* Quando ambos estão OK */
+    .status{cursor:pointer;font-weight:bold; text-align: center;}
+    .editBtn{background:#2563eb;margin-top:0; padding: 4px;}
   </style>
 </head>
 <body>
 
-<div id="statusConexao">🔄 Verificando conexão Firebase...</div>
+<div id="statusConexao" style="text-align:center; font-weight:bold; padding:10px;">🔄 Verificando conexão...</div>
 
 <div class="topo">
   <img src="brasao-escola.jpeg" height="70">
   <div>
-    <h1>Painel de Lançamentos</h1>
+    <h1>Painel de Lançamentos 2026</h1>
     <div><b>Escola Estadual Militar Dom Pedro II</b></div>
   </div>
 </div>
 
 <div class="card">
-  <h2>Pendências por professor (todas as turmas)</h2>
+  <h2>Relatórios e Varredura</h2>
   <input id="profPendencias" placeholder="Digite o nome do professor">
-  <button class="sec" onclick="copiarPendenciasProfessor()">Copiar pendências do professor</button>
-<button class="warn" onclick="varreduraGeral()">📋 Gerar Lista Geral de Professores</button>
-                                                                                            
+  <button class="sec" onclick="copiarPendenciasProfessor()">📋 Pendências por Professor</button>
+  <button class="warn" onclick="varreduraGeral()">📊 Gerar Lista Geral (WhatsApp)</button>
 </div>
 
 <div class="card" id="areaTurma">
-  <h2>Abrir turma</h2>
+  <h2>Acompanhamento por Turma</h2>
+  <div style="display:flex; gap:10px">
+    <div style="flex:1"><label>Ano</label><select id="ano"></select></div>
+    <div style="flex:1"><label>Turma</label><select id="turma"></select></div>
+  </div>
 
-  <label>Ano</label>
-  <select id="ano"></select>
+  <button onclick="abrirTurma()">🔍 Abrir Turma</button>
+  <button class="ok" onclick="copiarResumoTurma()">📝 Copiar Resumo desta Turma</button>
+  <button class="warn" onclick="baixarImagem()">🖼️ Baixar Foto do Painel</button>
 
-  <label>Turma</label>
-  <select id="turma"></select>
-
-  <button onclick="abrirTurma()">Abrir</button>
-  <button class="ok" onclick="copiarResumoTurma()">Copiar resumo da turma</button>
-  <button class="warn" onclick="baixarImagem()">Baixar imagem</button>
-
-<table>
-  <thead>
-    <tr>
-      <th>Disciplina</th>
-      <th>Professor</th>
-      <th>Planejamento</th> 
-      <th>Lançamento PEI</th> 
-      <th>Editar</th>
-    </tr>
-  </thead>
-  <tbody id="tabela"></tbody>
-</table>
+  <table>
+    <thead>
+      <tr>
+        <th>Disciplina</th>
+        <th>Professor</th>
+        <th>Planejamento</th>
+        <th>PEI</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody id="tabela"></tbody>
+  </table>
 </div>
 
 <script>
-// ===============================
-// CONFIGURAÇÃO FIREBASE
-// ===============================
 const firebaseConfig = {
     apiKey: "AIzaSyDliIAcOCvgChv68cog27jenACkpF8MCyg",
     authDomain: "acompanhamento-pedagogico2026.firebaseapp.com",
@@ -90,158 +84,165 @@ const firebaseConfig = {
     appId: "1:358848317719:web:42feccdc979a1776cc8f52"
 };
 
-// Inicializa Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// Monitor de Conexão
 const statusDiv = document.getElementById("statusConexao");
 db.ref(".info/connected").on("value", snap => {
   if (snap.val() === true) {
-    statusDiv.innerHTML = "🟢 Firebase conectado";
+    statusDiv.innerHTML = "🟢 Conectado ao Firebase Cloud";
     statusDiv.style.color = "#16a34a";
-    statusDiv.style.background = "#dcfce7";
   } else {
-    statusDiv.innerHTML = "🔴 Firebase desconectado";
+    statusDiv.innerHTML = "🔴 Offline - Verifique a internet";
     statusDiv.style.color = "#dc2626";
-    statusDiv.style.background = "#fee2e2";
   }
 });
 
-// ===============================
-// LÓGICA DO SISTEMA
-// ===============================
-const turmasBase = {"6º":["A","B","C","D","E"],"7º":["A","B","C","D","E","F"]};
-const disciplinasBase = ["Língua Portuguesa","Arte","Educação Física","Inglês","Matemática","Ciências","História","Geografia"];
+const turmasBase={"6º":["A","B","C","D","E"],"7º":["A","B","C","D","E","F"]};
+const disciplinasBase=["Língua Portuguesa","Arte","Educação Física","Inglês","Matemática","Ciências","História","Geografia"];
 
-window.onload = function(){
-  const anoSel = document.getElementById("ano");
-  Object.keys(turmasBase).forEach(a => {
-    const op = document.createElement("option");
-    op.textContent = a;
+window.onload=function(){
+  const anoSel=document.getElementById("ano");
+  Object.keys(turmasBase).forEach(a=>{
+    const op=document.createElement("option");
+    op.textContent=a;
     anoSel.appendChild(op);
   });
   carregarTurmas();
 };
 
-document.getElementById("ano").addEventListener("change", carregarTurmas);
+document.getElementById("ano").addEventListener("change",carregarTurmas);
 
 function carregarTurmas(){
-  const ano = document.getElementById("ano").value;
-  const turmaSel = document.getElementById("turma");
-  turmaSel.innerHTML = "";
-  turmasBase[ano].forEach(t => {
-    const op = document.createElement("option");
-    op.textContent = t;
+  const ano=document.getElementById("ano").value;
+  const turmaSel=document.getElementById("turma");
+  turmaSel.innerHTML="";
+  turmasBase[ano].forEach(t=>{
+    const op=document.createElement("option");
+    op.textContent=t;
     turmaSel.appendChild(op);
   });
 }
 
 function abrirTurma(){
-  const ano = document.getElementById("ano").value;
-  const turma = document.getElementById("turma").value;
-  const chave = "status_" + ano + turma;
+  const ano=document.getElementById("ano").value;
+  const turma=document.getElementById("turma").value;
+  const chave="status_"+ano+turma;
 
-  db.ref("turmas/" + chave).on("value", snap => { // Usei .on para atualizar em tempo real
-    let dados = snap.val();
-
+  db.ref("turmas/"+chave).on("value", snap => {
+    let dados=snap.val();
     if(!dados){
-      dados = disciplinasBase.map(d => ({
-        ano, turma, disciplina: d, professor: "", ok: false
+      dados=disciplinasBase.map(d=>({
+        ano,turma,disciplina:d,professor:"",ok:false,pei:false
       }));
-      db.ref("turmas/" + chave).set(dados);
+      db.ref("turmas/"+chave).set(dados);
     }
-    renderTabela(dados, chave);
+    renderTabela(dados,chave);
   });
 }
 
-function renderTabela(dados, chave){
-  const tb = document.getElementById("tabela");
-  tb.innerHTML = "";
+function renderTabela(dados,chave){
+  const tb=document.getElementById("tabela");
+  tb.innerHTML="";
+  dados.forEach((d,i)=>{
+    const tr=document.createElement("tr");
+    if(d.ok && d.pei) tr.className="ok-total";
 
-  dados.forEach((d, i) => {
-    const tr = document.createElement("tr");
-    tr.className = d.ok ? "ok" : "pend";
-
-    tr.innerHTML = `
-      <td>${d.disciplina}</td>
-      <td>${d.professor || "—"}</td>
-      <td class="status" onclick="toggleStatus('${chave}',${i})">${d.ok ? "OK" : "PENDENTE"}</td>
-      <td><button class="editBtn" onclick="editarProf('${chave}',${i})">Editar</button></td>
+    tr.innerHTML=`
+      <td><b>${d.disciplina}</b></td>
+      <td>${d.professor||"—"}</td>
+      <td class="status" onclick="toggleStatus('${chave}',${i},'ok')">
+        ${d.ok ? "✅ OK" : "❌ PEND"}
+      </td>
+      <td class="status" onclick="toggleStatus('${chave}',${i},'pei')">
+        ${d.pei ? "✅ LANÇADO" : "❌ PEND"}
+      </td>
+      <td><button class="editBtn" onclick="editarProf('${chave}',${i})">✏️</button></td>
     `;
     tb.appendChild(tr);
   });
 }
 
-function toggleStatus(chave, i){
-  const ref = db.ref("turmas/" + chave + "/" + i + "/ok");
-  ref.once("value").then(snap => {
+function toggleStatus(chave,i,campo){
+  const ref=db.ref("turmas/"+chave+"/"+i+"/"+campo);
+  ref.once("value").then(snap=>{
     ref.set(!snap.val());
   });
 }
 
-function editarProf(chave, i){
-  const ref = db.ref("turmas/" + chave + "/" + i);
-  ref.once("value").then(snap => {
-    const d = snap.val();
-    const nome = prompt("Nome do professor:", d.professor || "");
-    if(nome !== null){
-      ref.update({ professor: nome.trim() });
-    }
+function editarProf(chave,i){
+  const ref=db.ref("turmas/"+chave+"/"+i);
+  ref.once("value").then(snap=>{
+    const d=snap.val();
+    const nome=prompt("Nome do professor:",d.professor||"");
+    if(nome!==null) ref.update({professor:nome.trim()});
   });
 }
 
 function copiarTexto(txt){
-  navigator.clipboard.writeText(txt).then(() => alert("Copiado 👍"));
+  navigator.clipboard.writeText(txt).then(()=>alert("Copiado para o WhatsApp! 👍"));
 }
 
 function copiarResumoTurma(){
-  const ano = document.getElementById("ano").value;
-  const turma = document.getElementById("turma").value;
-  const chave = "status_" + ano + turma;
-
-  db.ref("turmas/" + chave).once("value").then(snap => {
-    const dados = snap.val() || [];
-    let txt = `Escola Estadual Militar Dom Pedro II\nTurma ${ano} ${turma}\n\n`;
-    dados.forEach(d => {
-      txt += `${d.disciplina} — ${d.professor || "(sem prof)"} — ${d.ok ? "OK" : "PENDENTE"}\n`;
+  const ano=document.getElementById("ano").value;
+  const turma=document.getElementById("turma").value;
+  db.ref("turmas/status_"+ano+turma).once("value").then(snap=>{
+    const dados=snap.val()||[];
+    let txt=`📊 *STATUS PEDAGÓGICO: ${ano} ${turma}*\n\n`;
+    dados.forEach(d=>{
+      txt+=`*${d.disciplina}* (${d.professor||"?"})\n`;
+      txt+=`> Planejamento: ${d.ok?"✅":"❌"} | PEI: ${d.pei?"✅":"❌"}\n\n`;
     });
     copiarTexto(txt);
+  });
+}
+
+function varreduraGeral() {
+  db.ref("turmas").once("value").then(snap => {
+    const todas = snap.val();
+    if (!todas) return alert("Banco vazio!");
+    let relatorio = "📊 *QUADRO GERAL - EEM DOM PEDRO II*\n\n";
+    Object.keys(todas).sort().forEach(chave => {
+      const nomeTurma = chave.replace("status_", "").replace(/([0-9]º)([A-Z])/, "$1 $2");
+      relatorio += `🔹 *TURMA: ${nomeTurma}*\n`;
+      todas[chave].forEach(d => {
+        relatorio += `• ${d.disciplina}: ${d.ok?"✅":"❌"} Plan. / ${d.pei?"✅":"❌"} PEI\n`;
+      });
+      relatorio += "\n";
+    });
+    copiarTexto(relatorio);
   });
 }
 
 function copiarPendenciasProfessor(){
-  const prof = document.getElementById("profPendencias").value.trim();
-  if(!prof){ alert("Digite o nome"); return; }
-
-  db.ref("turmas").once("value").then(snap => {
-    const turmas = snap.val() || {};
-    let txt = `Pendências do professor ${prof}\n\n`;
-    let achou = false;
-
-    Object.values(turmas).forEach(lista => {
-      lista.forEach(d => {
-        if(d.professor && d.professor.toLowerCase() === prof.toLowerCase() && !d.ok){
-          txt += `${d.ano} ${d.turma} — ${d.disciplina}\n`;
-          achou = true;
+  const prof=document.getElementById("profPendencias").value.trim();
+  if(!prof) return alert("Digite o nome");
+  db.ref("turmas").once("value").then(snap=>{
+    const turmas=snap.val()||{};
+    let txt=`*PENDÊNCIAS: PROF. ${prof.toUpperCase()}*\n\n`;
+    let achou=false;
+    Object.values(turmas).forEach(lista=>{
+      lista.forEach(d=>{
+        if(d.professor.toLowerCase().includes(prof.toLowerCase()) && (!d.ok || !d.pei)){
+          txt+=`📍 ${d.ano} ${d.turma} - ${d.disciplina}\n`;
+          if(!d.ok) txt+=`   [ ] Planejamento Pendente\n`;
+          if(!d.pei) txt+=`   [ ] PEI Pendente\n`;
+          txt+=`\n`; achou=true;
         }
       });
     });
-
-    if(!achou){ alert("Nenhuma pendência encontrada para este professor."); return; }
-    copiarTexto(txt);
+    achou ? copiarTexto(txt) : alert("Nenhuma pendência encontrada!");
   });
 }
 
 function baixarImagem(){
-  html2canvas(document.getElementById("areaTurma")).then(canvas => {
-    const link = document.createElement("a");
-    link.download = "turma.png";
-    link.href = canvas.toDataURL();
+  html2canvas(document.getElementById("areaTurma")).then(canvas=>{
+    const link=document.createElement("a");
+    link.download="painel_pedagogico.png";
+    link.href=canvas.toDataURL();
     link.click();
   });
 }
 </script>
-
 </body>
 </html>
