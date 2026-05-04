@@ -2,11 +2,12 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Meu Ábaco Escolar</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ábaco Mobile Pro</title>
     <style>
         :root {
-            --madeira: #8b4513;
-            --metal: #bdc3c7;
+            --madeira: #704214;
+            --metal: #aab;
             --unidade: #2ecc71;
             --dezena: #f1c40f;
             --centena: #e67e22;
@@ -17,110 +18,118 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-color: #ecf0f1;
-            font-family: sans-serif;
-            padding-top: 50px;
+            background-color: #f4f7f6;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 10px;
+            height: 100vh;
+            overflow: hidden; /* Evita rolagens desnecessárias */
+            touch-action: manipulation; /* Melhora resposta ao toque */
         }
 
-        /* Painel do Valor Total */
         .visor {
-            background: #2c3e50;
-            color: #fff;
-            font-size: 3rem;
-            padding: 10px 40px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            min-width: 200px;
+            background: #1a252f;
+            color: #2ecc71;
+            font-size: 2.5rem;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 10px 0;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
             text-align: center;
+            width: 90%;
+            font-family: monospace;
         }
 
-        /* Estrutura do Ábaco */
         .abaco-frame {
-            border: 12px solid var(--madeira);
-            border-radius: 8px;
-            background: #fdf5e6;
+            border: 10px solid var(--madeira);
+            border-radius: 15px;
+            background: #fff9f0;
             display: flex;
-            padding: 10px 40px;
-            gap: 40px;
+            justify-content: space-around;
+            width: 95%;
+            height: 65vh; /* Ocupa a maior parte da tela vertical */
             position: relative;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         }
 
         .coluna {
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 60px;
-            height: 400px;
+            flex: 1;
+            height: 100%;
             position: relative;
         }
 
-        /* A haste de metal */
         .haste {
             position: absolute;
-            width: 8px;
+            width: 10px;
             height: 100%;
-            background: var(--metal);
+            background: linear-gradient(to right, #999, #ccc, #999);
             z-index: 1;
-            border-radius: 4px;
         }
 
         .contas-container {
             display: flex;
-            flex-direction: column-reverse; /* Começa de baixo */
+            flex-direction: column-reverse;
             justify-content: flex-start;
             height: 100%;
-            width: 100%;
+            width: 85%;
             z-index: 2;
+            padding-bottom: 5px;
         }
 
-        /* Estilo das Contas */
+        /* CONTAS MAIORES PARA O DEDO */
         .conta {
-            width: 60px;
-            height: 35px;
-            border-radius: 10px;
+            width: 100%;
+            height: 7%; /* Proporção ideal para 9 contas */
+            min-height: 44px; /* Altura mínima recomendada para toque (Apple/Google) */
+            border-radius: 12px;
             cursor: pointer;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
-            margin-bottom: 2px;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+            margin-bottom: 6px; /* Espaço maior entre as contas */
+            border: 1px solid rgba(0,0,0,0.1);
         }
 
-        /* Cores por Coluna */
-        .col-um .conta { background-color: var(--milhar); }
-        .col-c  .conta { background-color: var(--centena); }
-        .col-d  .conta { background-color: var(--dezena); }
-        .col-u  .conta { background-color: var(--unidade); }
+        .col-um .conta { background: var(--milhar); }
+        .col-c  .conta { background: var(--centena); }
+        .col-d  .conta { background: var(--dezena); }
+        .col-u  .conta { background: var(--unidade); }
 
-        /* Movimento da conta (sobe quando ativa) */
+        /* Movimento de subida maior para clareza visual */
         .conta.active {
-            transform: translateY(-160px); /* Espaço para não amontoar */
+            transform: translateY(-28vh); 
         }
 
-        /* Legendas abaixo */
         .labels {
             display: flex;
-            gap: 40px;
-            margin-top: 20px;
-            padding-left: 12px;
+            width: 95%;
+            margin-top: 10px;
         }
 
         .label {
-            width: 60px;
+            flex: 1;
             text-align: center;
-            font-weight: bold;
-            color: #34495e;
+            font-weight: 900;
+            font-size: 1.1rem;
+            color: #2c3e50;
         }
 
-        button {
-            margin-top: 40px;
-            padding: 12px 25px;
-            font-size: 1rem;
-            background: var(--madeira);
+        .btn-reset {
+            margin-top: auto;
+            margin-bottom: 20px;
+            width: 90%;
+            padding: 18px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            background: #c0392b;
             color: white;
             border: none;
-            border-radius: 5px;
-            cursor: pointer;
+            border-radius: 15px;
+            text-transform: uppercase;
+            box-shadow: 0 5px 0 #962d22;
+            active { transform: translateY(3px); box-shadow: none; }
         }
     </style>
 </head>
@@ -129,38 +138,10 @@
     <div class="visor" id="resultado">0</div>
 
     <div class="abaco-frame">
-        <!-- Unidade de Milhar -->
-        <div class="coluna col-um" data-valor="1000">
-            <div class="haste"></div>
-            <div class="contas-container">
-                <!-- 9 contas para cada ordem -->
-                <script>for(i=0; i<9; i++) document.write('<div class="conta" onclick="toggleConta(this, 1000)"></div>');</script>
-            </div>
-        </div>
-
-        <!-- Centena -->
-        <div class="coluna col-c" data-valor="100">
-            <div class="haste"></div>
-            <div class="contas-container">
-                <script>for(i=0; i<9; i++) document.write('<div class="conta" onclick="toggleConta(this, 100)"></div>');</script>
-            </div>
-        </div>
-
-        <!-- Dezena -->
-        <div class="coluna col-d" data-valor="10">
-            <div class="haste"></div>
-            <div class="contas-container">
-                <script>for(i=0; i<9; i++) document.write('<div class="conta" onclick="toggleConta(this, 10)"></div>');</script>
-            </div>
-        </div>
-
-        <!-- Unidade -->
-        <div class="coluna col-u" data-valor="1">
-            <div class="haste"></div>
-            <div class="contas-container">
-                <script>for(i=0; i<9; i++) document.write('<div class="conta" onclick="toggleConta(this, 1)"></div>');</script>
-            </div>
-        </div>
+        <div class="coluna col-um"><div class="haste"></div><div class="contas-container" id="um"></div></div>
+        <div class="coluna col-c"><div class="haste"></div><div class="contas-container" id="c"></div></div>
+        <div class="coluna col-d"><div class="haste"></div><div class="contas-container" id="d"></div></div>
+        <div class="coluna col-u"><div class="haste"></div><div class="contas-container" id="u"></div></div>
     </div>
 
     <div class="labels">
@@ -170,22 +151,41 @@
         <div class="label">U</div>
     </div>
 
-    <button onclick="reset()">Zerar Ábaco</button>
+    <button class="btn-reset" onclick="reset()">Zerar Ábaco</button>
 
     <script>
+        const ordens = [
+            { id: 'um', valor: 1000 },
+            { id: 'c', valor: 100 },
+            { id: 'd', valor: 10 },
+            { id: 'u', valor: 1 }
+        ];
+
         let total = 0;
         const visor = document.getElementById('resultado');
 
-        function toggleConta(el, valor) {
-            if (el.classList.contains('active')) {
-                el.classList.remove('active');
-                total -= valor;
-            } else {
-                el.classList.add('active');
-                total += valor;
+        ordens.forEach(ordem => {
+            const container = document.getElementById(ordem.id);
+            for(let i=0; i<9; i++) {
+                const conta = document.createElement('div');
+                conta.className = 'conta';
+                // Adicionado 'touchstart' para resposta imediata no celular
+                const handleEvent = (e) => {
+                    e.preventDefault();
+                    if (conta.classList.contains('active')) {
+                        conta.classList.remove('active');
+                        total -= ordem.valor;
+                    } else {
+                        conta.classList.add('active');
+                        total += ordem.valor;
+                    }
+                    visor.innerText = total.toLocaleString('pt-BR');
+                };
+                
+                conta.addEventListener('click', handleEvent);
+                container.appendChild(conta);
             }
-            visor.innerText = total.toLocaleString('pt-BR');
-        }
+        });
 
         function reset() {
             document.querySelectorAll('.conta').forEach(c => c.classList.remove('active'));
