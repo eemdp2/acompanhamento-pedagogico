@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ábaco de Eixos Vazios</title>
+    <style>
+        :root {
+            --madeira: #5d2e0a;
+            --metal: #bdc3c7;
+            --unidade: #2ecc71;
+            --dezena: #f1c40f;
+            --centena: #e67e22;
+            --milhar: #e74c3c;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #ecf0f1;
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 20px;
+            height: 100vh;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        .visor {
+            background: #2c3e50;
+            color: #fff;
+            font-size: 3rem;
+            padding: 10px 40px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            min-width: 150px;
+            text-align: center;
+        }
+
+        /* Estrutura do Ábaco */
+        .abaco-frame {
+            border-bottom: 20px solid var(--madeira);
+            border-left: 10px solid var(--madeira);
+            border-right: 10px solid var(--madeira);
+            border-radius: 0 0 15px 15px;
+            background: rgba(255,255,255,0.5);
+            display: flex;
+            justify-content: space-around;
+            width: 90%;
+            max-width: 500px;
+            height: 60vh;
+            position: relative;
+        }
+
+        .coluna {
+            display: flex;
+            flex-direction: column-reverse; /* As contas empilham de baixo para cima */
+            align-items: center;
+            flex: 1;
+            height: 100%;
+            position: relative;
+            cursor: pointer;
+        }
+
+        /* A haste central (Eixo) */
+        .haste {
+            position: absolute;
+            width: 8px;
+            height: 100%;
+            background: var(--metal);
+            z-index: 1;
+            border-radius: 4px;
+        }
+
+        .contas-container {
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            padding-bottom: 5px;
+        }
+
+        .conta {
+            width: 80%;
+            height: 40px;
+            border-radius: 20px;
+            margin-bottom: 5px;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+            animation: surgir 0.3s ease-out;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        @keyframes surgir {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Cores das contas */
+        .col-um .conta { background: var(--milhar); }
+        .col-c  .conta { background: var(--centena); }
+        .col-d  .conta { background: var(--dezena); }
+        .col-u  .conta { background: var(--unidade); }
+
+        .labels {
+            display: flex;
+            width: 90%;
+            max-width: 500px;
+            margin-top: 15px;
+        }
+
+        .label-btn {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .add-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 25px;
+            border: none;
+            background: var(--madeira);
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #3a291d;
+        }
+
+        .add-btn:active {
+            transform: translateY(2px);
+            box-shadow: none;
+        }
+
+        .label-text {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .controles {
+            margin-top: 30px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .reset-btn {
+            width: 100%;
+            padding: 15px;
+            background: #c0392b;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="visor" id="total">0</div>
+
+    <div class="abaco-frame">
+        <div class="coluna col-um" onclick="addConta('um', 1000)">
+            <div class="haste"></div>
+            <div class="contas-container" id="container-um"></div>
+        </div>
+        <div class="coluna col-c" onclick="addConta('c', 100)">
+            <div class="haste"></div>
+            <div class="contas-container" id="container-c"></div>
+        </div>
+        <div class="coluna col-d" onclick="addConta('d', 10)">
+            <div class="haste"></div>
+            <div class="contas-container" id="container-d"></div>
+        </div>
+        <div class="coluna col-u" onclick="addConta('u', 1)">
+            <div class="haste"></div>
+            <div class="contas-container" id="container-u"></div>
+        </div>
+    </div>
+
+    <div class="labels">
+        <div class="label-btn">
+            <button class="add-btn" onclick="event.stopPropagation(); addConta('um', 1000)">+</button>
+            <span class="label-text">UM</span>
+        </div>
+        <div class="label-btn">
+            <button class="add-btn" onclick="event.stopPropagation(); addConta('c', 100)">+</button>
+            <span class="label-text">C</span>
+        </div>
+        <div class="label-btn">
+            <button class="add-btn" onclick="event.stopPropagation(); addConta('d', 10)">+</button>
+            <span class="label-text">D</span>
+        </div>
+        <div class="label-btn">
+            <button class="add-btn" onclick="event.stopPropagation(); addConta('u', 1)">+</button>
+            <span class="label-text">U</span>
+        </div>
+    </div>
+
+    <div class="controles">
+        <button class="reset-btn" onclick="reset()">Limpar Eixos</button>
+    </div>
+
+    <script>
+        let valorTotal = 0;
+        const contadores = { um: 0, c: 0, d: 0, u: 0 };
+
+        function addConta(id, valor) {
+            if (contadores[id] >= 9) return; // Limite de 9 contas por eixo
+
+            const container = document.getElementById('container-' + id);
+            
+            // Criar a conta visualmente
+            const novaConta = document.createElement('div');
+            novaConta.className = 'conta';
+            
+            // Permitir remover a conta clicando nela
+            novaConta.onclick = (e) => {
+                e.stopPropagation();
+                container.removeChild(novaConta);
+                contadores[id]--;
+                valorTotal -= valor;
+                atualizarVisor();
+            };
+
+            container.appendChild(novaConta);
+            contadores[id]++;
+            valorTotal += valor;
+            atualizarVisor();
+        }
+
+        function atualizarVisor() {
+            document.getElementById('total').innerText = valorTotal.toLocaleString('pt-BR');
+        }
+
+        function reset() {
+            const ids = ['um', 'c', 'd', 'u'];
+            ids.forEach(id => {
+                document.getElementById('container-' + id).innerHTML = '';
+                contadores[id] = 0;
+            });
+            valorTotal = 0;
+            atualizarVisor();
+        }
+    </script>
+</body>
+</html>
