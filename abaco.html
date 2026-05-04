@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ábaco Mobile Pro</title>
+    <title>Ábaco de Eixos Vazios</title>
     <style>
         :root {
-            --madeira: #704214;
-            --metal: #aab;
+            --madeira: #5d2e0a;
+            --metal: #bdc3c7;
             --unidade: #2ecc71;
             --dezena: #f1c40f;
             --centena: #e67e22;
@@ -18,179 +18,235 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-color: #f4f7f6;
-            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: #ecf0f1;
+            font-family: 'Segoe UI', sans-serif;
             margin: 0;
-            padding: 10px;
+            padding: 20px;
             height: 100vh;
-            overflow: hidden; /* Evita rolagens desnecessárias */
-            touch-action: manipulation; /* Melhora resposta ao toque */
+            overflow: hidden;
+            touch-action: manipulation;
         }
 
         .visor {
-            background: #1a252f;
-            color: #2ecc71;
-            font-size: 2.5rem;
-            padding: 15px;
-            border-radius: 12px;
-            margin: 10px 0;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            background: #2c3e50;
+            color: #fff;
+            font-size: 3rem;
+            padding: 10px 40px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            min-width: 150px;
             text-align: center;
-            width: 90%;
-            font-family: monospace;
         }
 
+        /* Estrutura do Ábaco */
         .abaco-frame {
-            border: 10px solid var(--madeira);
-            border-radius: 15px;
-            background: #fff9f0;
+            border-bottom: 20px solid var(--madeira);
+            border-left: 10px solid var(--madeira);
+            border-right: 10px solid var(--madeira);
+            border-radius: 0 0 15px 15px;
+            background: rgba(255,255,255,0.5);
             display: flex;
             justify-content: space-around;
-            width: 95%;
-            height: 65vh; /* Ocupa a maior parte da tela vertical */
+            width: 90%;
+            max-width: 500px;
+            height: 60vh;
             position: relative;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         }
 
         .coluna {
             display: flex;
-            flex-direction: column;
+            flex-direction: column-reverse; /* As contas empilham de baixo para cima */
             align-items: center;
             flex: 1;
             height: 100%;
             position: relative;
+            cursor: pointer;
         }
 
+        /* A haste central (Eixo) */
         .haste {
             position: absolute;
-            width: 10px;
+            width: 8px;
             height: 100%;
-            background: linear-gradient(to right, #999, #ccc, #999);
+            background: var(--metal);
             z-index: 1;
+            border-radius: 4px;
         }
 
         .contas-container {
             display: flex;
             flex-direction: column-reverse;
-            justify-content: flex-start;
+            align-items: center;
+            width: 100%;
             height: 100%;
-            width: 85%;
             z-index: 2;
             padding-bottom: 5px;
         }
 
-        /* CONTAS MAIORES PARA O DEDO */
         .conta {
-            width: 100%;
-            height: 7%; /* Proporção ideal para 9 contas */
-            min-height: 44px; /* Altura mínima recomendada para toque (Apple/Google) */
-            border-radius: 12px;
-            cursor: pointer;
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 4px 0 rgba(0,0,0,0.15);
-            margin-bottom: 6px; /* Espaço maior entre as contas */
+            width: 80%;
+            height: 40px;
+            border-radius: 20px;
+            margin-bottom: 5px;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+            animation: surgir 0.3s ease-out;
             border: 1px solid rgba(0,0,0,0.1);
         }
 
+        @keyframes surgir {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Cores das contas */
         .col-um .conta { background: var(--milhar); }
         .col-c  .conta { background: var(--centena); }
         .col-d  .conta { background: var(--dezena); }
         .col-u  .conta { background: var(--unidade); }
 
-        /* Movimento de subida maior para clareza visual */
-        .conta.active {
-            transform: translateY(-28vh); 
-        }
-
         .labels {
             display: flex;
-            width: 95%;
-            margin-top: 10px;
+            width: 90%;
+            max-width: 500px;
+            margin-top: 15px;
         }
 
-        .label {
+        .label-btn {
             flex: 1;
-            text-align: center;
-            font-weight: 900;
-            font-size: 1.1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .add-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 25px;
+            border: none;
+            background: var(--madeira);
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #3a291d;
+        }
+
+        .add-btn:active {
+            transform: translateY(2px);
+            box-shadow: none;
+        }
+
+        .label-text {
+            font-weight: bold;
             color: #2c3e50;
         }
 
-        .btn-reset {
-            margin-top: auto;
-            margin-bottom: 20px;
+        .controles {
+            margin-top: 30px;
             width: 90%;
-            padding: 18px;
-            font-size: 1.2rem;
-            font-weight: bold;
+            max-width: 500px;
+        }
+
+        .reset-btn {
+            width: 100%;
+            padding: 15px;
             background: #c0392b;
             color: white;
             border: none;
-            border-radius: 15px;
-            text-transform: uppercase;
-            box-shadow: 0 5px 0 #962d22;
-            active { transform: translateY(3px); box-shadow: none; }
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1.1rem;
         }
     </style>
 </head>
 <body>
 
-    <div class="visor" id="resultado">0</div>
+    <div class="visor" id="total">0</div>
 
     <div class="abaco-frame">
-        <div class="coluna col-um"><div class="haste"></div><div class="contas-container" id="um"></div></div>
-        <div class="coluna col-c"><div class="haste"></div><div class="contas-container" id="c"></div></div>
-        <div class="coluna col-d"><div class="haste"></div><div class="contas-container" id="d"></div></div>
-        <div class="coluna col-u"><div class="haste"></div><div class="contas-container" id="u"></div></div>
+        <div class="coluna col-um" onclick="addConta('um', 1000)">
+            <div class="haste"></div>
+            <div class="contas-container" id="container-um"></div>
+        </div>
+        <div class="coluna col-c" onclick="addConta('c', 100)">
+            <div class="haste"></div>
+            <div class="contas-container" id="container-c"></div>
+        </div>
+        <div class="coluna col-d" onclick="addConta('d', 10)">
+            <div class="haste"></div>
+            <div class="contas-container" id="container-d"></div>
+        </div>
+        <div class="coluna col-u" onclick="addConta('u', 1)">
+            <div class="haste"></div>
+            <div class="contas-container" id="container-u"></div>
+        </div>
     </div>
 
     <div class="labels">
-        <div class="label">UM</div>
-        <div class="label">C</div>
-        <div class="label">D</div>
-        <div class="label">U</div>
+        <div class="label-btn">
+            <button class="add-btn" onclick="event.stopPropagation(); addConta('um', 1000)">+</button>
+            <span class="label-text">UM</span>
+        </div>
+        <div class="label-btn">
+            <button class="add-btn" onclick="event.stopPropagation(); addConta('c', 100)">+</button>
+            <span class="label-text">C</span>
+        </div>
+        <div class="label-btn">
+            <button class="add-btn" onclick="event.stopPropagation(); addConta('d', 10)">+</button>
+            <span class="label-text">D</span>
+        </div>
+        <div class="label-btn">
+            <button class="add-btn" onclick="event.stopPropagation(); addConta('u', 1)">+</button>
+            <span class="label-text">U</span>
+        </div>
     </div>
 
-    <button class="btn-reset" onclick="reset()">Zerar Ábaco</button>
+    <div class="controles">
+        <button class="reset-btn" onclick="reset()">Limpar Eixos</button>
+    </div>
 
     <script>
-        const ordens = [
-            { id: 'um', valor: 1000 },
-            { id: 'c', valor: 100 },
-            { id: 'd', valor: 10 },
-            { id: 'u', valor: 1 }
-        ];
+        let valorTotal = 0;
+        const contadores = { um: 0, c: 0, d: 0, u: 0 };
 
-        let total = 0;
-        const visor = document.getElementById('resultado');
+        function addConta(id, valor) {
+            if (contadores[id] >= 9) return; // Limite de 9 contas por eixo
 
-        ordens.forEach(ordem => {
-            const container = document.getElementById(ordem.id);
-            for(let i=0; i<9; i++) {
-                const conta = document.createElement('div');
-                conta.className = 'conta';
-                // Adicionado 'touchstart' para resposta imediata no celular
-                const handleEvent = (e) => {
-                    e.preventDefault();
-                    if (conta.classList.contains('active')) {
-                        conta.classList.remove('active');
-                        total -= ordem.valor;
-                    } else {
-                        conta.classList.add('active');
-                        total += ordem.valor;
-                    }
-                    visor.innerText = total.toLocaleString('pt-BR');
-                };
-                
-                conta.addEventListener('click', handleEvent);
-                container.appendChild(conta);
-            }
-        });
+            const container = document.getElementById('container-' + id);
+            
+            // Criar a conta visualmente
+            const novaConta = document.createElement('div');
+            novaConta.className = 'conta';
+            
+            // Permitir remover a conta clicando nela
+            novaConta.onclick = (e) => {
+                e.stopPropagation();
+                container.removeChild(novaConta);
+                contadores[id]--;
+                valorTotal -= valor;
+                atualizarVisor();
+            };
+
+            container.appendChild(novaConta);
+            contadores[id]++;
+            valorTotal += valor;
+            atualizarVisor();
+        }
+
+        function atualizarVisor() {
+            document.getElementById('total').innerText = valorTotal.toLocaleString('pt-BR');
+        }
 
         function reset() {
-            document.querySelectorAll('.conta').forEach(c => c.classList.remove('active'));
-            total = 0;
-            visor.innerText = "0";
+            const ids = ['um', 'c', 'd', 'u'];
+            ids.forEach(id => {
+                document.getElementById('container-' + id).innerHTML = '';
+                contadores[id] = 0;
+            });
+            valorTotal = 0;
+            atualizarVisor();
         }
     </script>
 </body>
