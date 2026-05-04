@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Meu Ábaco Escolar</title>
+    <style>
+        :root {
+            --madeira: #8b4513;
+            --metal: #bdc3c7;
+            --unidade: #2ecc71;
+            --dezena: #f1c40f;
+            --centena: #e67e22;
+            --milhar: #e74c3c;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #ecf0f1;
+            font-family: sans-serif;
+            padding-top: 50px;
+        }
+
+        /* Painel do Valor Total */
+        .visor {
+            background: #2c3e50;
+            color: #fff;
+            font-size: 3rem;
+            padding: 10px 40px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            min-width: 200px;
+            text-align: center;
+        }
+
+        /* Estrutura do Ábaco */
+        .abaco-frame {
+            border: 12px solid var(--madeira);
+            border-radius: 8px;
+            background: #fdf5e6;
+            display: flex;
+            padding: 10px 40px;
+            gap: 40px;
+            position: relative;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+
+        .coluna {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 60px;
+            height: 400px;
+            position: relative;
+        }
+
+        /* A haste de metal */
+        .haste {
+            position: absolute;
+            width: 8px;
+            height: 100%;
+            background: var(--metal);
+            z-index: 1;
+            border-radius: 4px;
+        }
+
+        .contas-container {
+            display: flex;
+            flex-direction: column-reverse; /* Começa de baixo */
+            justify-content: flex-start;
+            height: 100%;
+            width: 100%;
+            z-index: 2;
+        }
+
+        /* Estilo das Contas */
+        .conta {
+            width: 60px;
+            height: 35px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+            margin-bottom: 2px;
+        }
+
+        /* Cores por Coluna */
+        .col-um .conta { background-color: var(--milhar); }
+        .col-c  .conta { background-color: var(--centena); }
+        .col-d  .conta { background-color: var(--dezena); }
+        .col-u  .conta { background-color: var(--unidade); }
+
+        /* Movimento da conta (sobe quando ativa) */
+        .conta.active {
+            transform: translateY(-160px); /* Espaço para não amontoar */
+        }
+
+        /* Legendas abaixo */
+        .labels {
+            display: flex;
+            gap: 40px;
+            margin-top: 20px;
+            padding-left: 12px;
+        }
+
+        .label {
+            width: 60px;
+            text-align: center;
+            font-weight: bold;
+            color: #34495e;
+        }
+
+        button {
+            margin-top: 40px;
+            padding: 12px 25px;
+            font-size: 1rem;
+            background: var(--madeira);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="visor" id="resultado">0</div>
+
+    <div class="abaco-frame">
+        <!-- Unidade de Milhar -->
+        <div class="coluna col-um" data-valor="1000">
+            <div class="haste"></div>
+            <div class="contas-container">
+                <!-- 9 contas para cada ordem -->
+                <script>for(i=0; i<9; i++) document.write('<div class="conta" onclick="toggleConta(this, 1000)"></div>');</script>
+            </div>
+        </div>
+
+        <!-- Centena -->
+        <div class="coluna col-c" data-valor="100">
+            <div class="haste"></div>
+            <div class="contas-container">
+                <script>for(i=0; i<9; i++) document.write('<div class="conta" onclick="toggleConta(this, 100)"></div>');</script>
+            </div>
+        </div>
+
+        <!-- Dezena -->
+        <div class="coluna col-d" data-valor="10">
+            <div class="haste"></div>
+            <div class="contas-container">
+                <script>for(i=0; i<9; i++) document.write('<div class="conta" onclick="toggleConta(this, 10)"></div>');</script>
+            </div>
+        </div>
+
+        <!-- Unidade -->
+        <div class="coluna col-u" data-valor="1">
+            <div class="haste"></div>
+            <div class="contas-container">
+                <script>for(i=0; i<9; i++) document.write('<div class="conta" onclick="toggleConta(this, 1)"></div>');</script>
+            </div>
+        </div>
+    </div>
+
+    <div class="labels">
+        <div class="label">UM</div>
+        <div class="label">C</div>
+        <div class="label">D</div>
+        <div class="label">U</div>
+    </div>
+
+    <button onclick="reset()">Zerar Ábaco</button>
+
+    <script>
+        let total = 0;
+        const visor = document.getElementById('resultado');
+
+        function toggleConta(el, valor) {
+            if (el.classList.contains('active')) {
+                el.classList.remove('active');
+                total -= valor;
+            } else {
+                el.classList.add('active');
+                total += valor;
+            }
+            visor.innerText = total.toLocaleString('pt-BR');
+        }
+
+        function reset() {
+            document.querySelectorAll('.conta').forEach(c => c.classList.remove('active'));
+            total = 0;
+            visor.innerText = "0";
+        }
+    </script>
+</body>
+</html>
