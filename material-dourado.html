@@ -1,1 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Material Dourado Digital</title>
+    <style>
+        :root {
+            --unidade: #ffd700;
+            --dezena: #e6c200;
+            --centena: #ccad00;
+            --bg: #f0f2f5;
+        }
 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            touch-action: manipulation;
+        }
+
+        h1 { color: #444; font-size: 1.5rem; }
+
+        .controles {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        button {
+            padding: 15px 10px;
+            border: none;
+            border-radius: 8px;
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.1s;
+        }
+
+        button:active { transform: scale(0.95); }
+        
+        .btn-u { background-color: var(--unidade); }
+        .btn-d { background-color: var(--dezena); }
+        .btn-c { background-color: var(--centena); }
+        .btn-reset { 
+            grid-column: span 3; 
+            background-color: #ff4d4d; 
+            color: white; 
+            margin-top: 10px;
+        }
+
+        .painel-visual {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            min-height: 300px;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            gap: 15px;
+        }
+
+        /* Estilização das Peças */
+        .peca { border: 1px solid rgba(0,0,0,0.1); border-radius: 2px; }
+
+        .unidade {
+            width: 15px;
+            height: 15px;
+            background-color: var(--unidade);
+        }
+
+        .dezena {
+            width: 15px;
+            height: 150px;
+            background-color: var(--dezena);
+            display: grid;
+            grid-template-rows: repeat(10, 1fr);
+            border: 1px solid #999;
+        }
+
+        .centena {
+            width: 150px;
+            height: 150px;
+            background-color: var(--centena);
+            display: grid;
+            grid-template: repeat(10, 1fr) / repeat(10, 1fr);
+            border: 2px solid #888;
+        }
+
+        /* Divisões internas para parecer material real */
+        .dezena div, .centena div { border: 0.1px solid rgba(0,0,0,0.1); }
+
+        .info { margin-top: 20px; font-size: 1.2rem; font-weight: bold; color: #555; }
+    </style>
+</head>
+<body>
+
+    <h1>Material Dourado</h1>
+
+    <div class="controles">
+        <button class="btn-c" onclick="adicionar('centena')">+ Centena</button>
+        <button class="btn-d" onclick="adicionar('dezena')">+ Dezena</button>
+        <button class="btn-u" onclick="adicionar('unidade')">+ Unidade</button>
+        <button class="btn-reset" onclick="limpar()">Limpar Tudo</button>
+    </div>
+
+    <div class="painel-visual" id="painel"></div>
+
+    <div class="info">Total: <span id="valor-total">0</span></div>
+
+    <script>
+        let total = 0;
+        const painel = document.getElementById('painel');
+        const displayTotal = document.getElementById('valor-total');
+
+        function adicionar(tipo) {
+            const div = document.createElement('div');
+            div.className = `peca ${tipo}`;
+            
+            if (tipo === 'unidade') {
+                total += 1;
+            } else if (tipo === 'dezena') {
+                total += 10;
+                for(let i=0; i<10; i++) div.appendChild(document.createElement('div'));
+            } else if (tipo === 'centena') {
+                total += 100;
+                for(let i=0; i<100; i++) div.appendChild(document.createElement('div'));
+            }
+
+            // Remove a peça ao clicar nela (intuitivo)
+            div.onclick = function() {
+                if (tipo === 'unidade') total -= 1;
+                else if (tipo === 'dezena') total -= 10;
+                else if (tipo === 'centena') total -= 100;
+                div.remove();
+                atualizarTotal();
+            };
+
+            painel.appendChild(div);
+            atualizarTotal();
+        }
+
+        function atualizarTotal() {
+            displayTotal.innerText = total;
+        }
+
+        function limpar() {
+            painel.innerHTML = '';
+            total = 0;
+            atualizarTotal();
+        }
+    </script>
+</body>
+</html>
